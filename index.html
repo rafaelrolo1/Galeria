@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
+
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Galeria de Bonsais - Corrigido</title>
-  <style>
+<meta charset="utf-8"/>
+<title>Galeria de Bonsais - Completo</title>
+<style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
     select { margin: 10px; padding: 5px; }
@@ -14,37 +15,30 @@
   </style>
 </head>
 <body>
-
-  <h1>Galeria de Bonsais</h1>
-
-  <label>Categoria:
+<h1>Galeria de Bonsais</h1>
+<label>Categoria:
     <select id="categoriaSelect">
-      <option value="">Selecionar categoria</option>
-    </select>
-  </label>
-
-  <label>Espécie:
+<option value="">A carregar...</option>
+</select>
+</label>
+<label>Espécie:
     <select id="especieSelect">
-      <option value="">A carregar todas...</option>
-    </select>
-  </label>
-
-  <label>Tamanho:
+<option value="">Seleciona uma categoria primeiro</option>
+</select>
+</label>
+<label>Tamanho:
     <select id="tamanhoSelect">
-      <option value="">Todos</option>
-    </select>
-  </label>
-
-  <label>Estilo:
+<option value="">Todos</option>
+</select>
+</label>
+<label>Estilo:
     <select id="estiloSelect">
-      <option value="">Todos</option>
-    </select>
-  </label>
-
-  <div id="log">Logs:</div>
-  <div class="galeria" id="galeria"></div>
-
-  <script>
+<option value="">Todos</option>
+</select>
+</label>
+<div id="log">Logs:</div>
+<div class="galeria" id="galeria"></div>
+<script>
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
@@ -62,8 +56,9 @@
 
     async function fetchSheetRange(sheetName, range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${apiKey}`;
+      log("Fetching: " + url);
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Erro HTTP " + response.status);
+      if (!response.ok) throw new Error("HTTP " + response.status);
       const data = await response.json();
       return data.values || [];
     }
@@ -84,27 +79,27 @@
       }
     }
 
-    async function carregarTodasEspecies() {
+    categoriaSelect.addEventListener("change", async () => {
+      const categoria = categoriaSelect.value.trim();
+      especieSelect.innerHTML = '<option value="">A carregar...</option>';
+      galeria.innerHTML = "";
+      if (!categoria) return;
+
       try {
-        const categorias = await fetchSheetRange("Categoria", "A1:A100");
-        let todas = [];
-        for (const [categoria] of categorias) {
-          const especies = await fetchSheetRange(categoria, "A1:A100");
-          especies.forEach(([e]) => todas.push(e));
-        }
-        todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
+        const especies = await fetchSheetRange(categoria, "A1:A100");
         especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-        todas.forEach(esp => {
+        especies.forEach(([especie]) => {
           const opt = document.createElement("option");
-          opt.value = esp;
-          opt.textContent = esp;
+          opt.value = especie;
+          opt.textContent = especie;
           especieSelect.appendChild(opt);
         });
-        log("Todas as espécies carregadas.");
+        log("Espécies carregadas.");
       } catch (err) {
+        especieSelect.innerHTML = '<option value="">Erro ao carregar</option>';
         log("Erro ao carregar espécies: " + err.message);
       }
-    }
+    });
 
     especieSelect.addEventListener("change", async () => {
       const especie = especieSelect.value.trim();
@@ -141,26 +136,31 @@
           estiloSelect.appendChild(opt);
         });
 
-        aplicarFiltros(imagens);
-        tamanhoSelect.onchange = () => aplicarFiltros(imagens);
-        estiloSelect.onchange = () => aplicarFiltros(imagens);
-        log("Espécie carregada com imagens.");
+        
+    aplicarFiltros(imagens);
+
+    tamanhoSelect.onchange = () => aplicarFiltros(imagens);
+    estiloSelect.onchange = () => aplicarFiltros(imagens);
+    
+        log("Dados da espécie carregados.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
       }
     });
 
+    
     function aplicarFiltros(lista) {
       const filtroTamanho = tamanhoSelect.value;
       const filtroEstilo = estiloSelect.value;
-      const filtrado = lista.filter(img => (
-        (!filtroTamanho || img.tamanho === filtroTamanho) &&
-        (!filtroEstilo || img.estilo === filtroEstilo)
-      ));
+      const filtrado = lista.filter(img => {
+        return (!filtroTamanho || img.tamanho === filtroTamanho) &&
+               (!filtroEstilo || img.estilo === filtroEstilo);
+      });
       mostrarImagens(filtrado);
     }
 
-    function mostrarImagens(lista) {
+    function mostrarImagens(lista)
+     {
       galeria.innerHTML = "";
       lista.forEach(img => {
         const i = document.createElement("img");
@@ -169,11 +169,61 @@
       });
     }
 
+    
+    async function carregarTodasEspecies() {
+      try {
+        const categorias = await fetchSheetRange("Categoria", "A1:A100");
+        let todas = [];
+        for (const [categoria] of categorias) {
+          const especies = await fetchSheetRange(categoria, "A1:A100");
+          especies.forEach(([e]) => todas.push(e));
+        }
+        todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
+        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
+        todas.forEach(esp => {
+          const opt = document.createElement("option");
+          opt.value = esp;
+          opt.textContent = esp;
+          especieSelect.appendChild(opt);
+        });
+        log("Todas as espécies carregadas.");
+      } catch (err) {
+        log("Erro ao carregar todas as espécies: " + err.message);
+      }
+    }
+
+
+    categoriaSelect.addEventListener("change", async () => {
+      const categoria = categoriaSelect.value.trim();
+      especieSelect.innerHTML = '<option value="">A carregar...</option>';
+      galeria.innerHTML = "";
+      if (!categoria) {
+        await carregarTodasEspecies();
+        return;
+      }
+
+      try {
+        const especies = await fetchSheetRange(categoria, "A1:A100");
+        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
+        especies.forEach(([especie]) => {
+          const opt = document.createElement("option");
+          opt.value = especie;
+          opt.textContent = especie;
+          especieSelect.appendChild(opt);
+        });
+        log("Espécies da categoria carregadas.");
+      } catch (err) {
+        especieSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+        log("Erro ao carregar espécies: " + err.message);
+      }
+    });
+
+
     document.addEventListener("DOMContentLoaded", async () => {
       await carregarCategorias();
       await carregarTodasEspecies();
     });
-  </script>
 
+  </script>
 </body>
 </html>
