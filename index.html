@@ -105,6 +105,16 @@
     });
 
     especieSelect.addEventListener("change", async () => {
+
+    const especie = especieSelect.value.trim();
+    galeria.innerHTML = "";
+    tamanhoSelect.innerHTML = '<option value="">Todos</option>';
+    estiloSelect.innerHTML = '<option value="">Todos</option>';
+
+    if (especieParaCategoria[especie]) {
+      categoriaSelect.value = especieParaCategoria[especie];
+    }
+
       const especie = especieSelect.value.trim();
       galeria.innerHTML = "";
       tamanhoSelect.innerHTML = '<option value="">Todos</option>';
@@ -222,7 +232,26 @@
     });
 
 
-    document.addEventListener("DOMContentLoaded", async () => {
+    
+    let especieParaCategoria = {{}};
+
+    async function mapearEspeciesCategorias() {{
+      const categorias = await fetchSheetRange("Categoria", "A1:A100");
+      for (const [categoria] of categorias) {{
+        try {{
+          const especies = await fetchSheetRange(categoria, "A1:A100");
+          especies.forEach(([esp]) => {{
+            especieParaCategoria[esp] = categoria;
+          }});
+        }} catch (e) {{
+          log("Erro ao mapear categoria de " + categoria + ": " + e.message);
+        }}
+      }}
+      log("Mapeamento de espécies carregado.");
+    }}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await mapearEspeciesCategorias();
 
     document.getElementById("searchEspecie").addEventListener("input", function () {
       const filtro = this.value.toLowerCase();
