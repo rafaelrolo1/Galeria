@@ -3,7 +3,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Dropdowns Dinâmicos</title>
+  <title>Debug Categoria</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
@@ -59,8 +59,8 @@
         categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
         categorias.forEach(([categoria]) => {
           const opt = document.createElement("option");
-          opt.value = categoria;
-          opt.textContent = categoria;
+          opt.value = categoria.trim();
+          opt.textContent = categoria.trim();
           categoriaSelect.appendChild(opt);
         });
         log("Categorias carregadas.");
@@ -70,10 +70,13 @@
     }
 
     categoriaSelect.addEventListener("change", async () => {
-      const categoria = categoriaSelect.value;
+      const rawCategoria = categoriaSelect.value;
+      const categoria = rawCategoria.trim();
+      log("Categoria selecionada: '" + categoria + "'");
       especieSelect.innerHTML = '<option value="">A carregar...</option>';
       if (!sheetLinks[categoria]) {
-        especieSelect.innerHTML = '<option value="">Sem folha associada</option>';
+        especieSelect.innerHTML = '<option value=''>Sem folha associada</option>';
+        log("Não encontrada no sheetLinks: '" + categoria + "'");
         return;
       }
       try {
