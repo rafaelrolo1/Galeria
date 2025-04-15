@@ -43,14 +43,6 @@
 <div id="log">Logs:</div>
 <!-- FIM LOGS -->
 <script>
-function setSelectValue(select, value) {
-  const optionExists = [...select.options].some(opt => opt.value === value);
-  if (optionExists) {
-    select.value = value;
-  }
-}
-
-
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
@@ -60,6 +52,16 @@ function setSelectValue(select, value) {
     const tamanhoSelect = document.getElementById("tamanhoSelect");
     const estiloSelect = document.getElementById("estiloSelect");
     const galeria = document.getElementById("galeria");
+
+let filtrosPendentes = { tamanho: "", estilo: "" };
+
+function setSelectValue(select, value) {
+  const optionExists = [...select.options].some(opt => opt.value === value);
+  if (optionExists) {
+    select.value = value;
+  }
+}
+
 
     function log(msg) {
       const el = document.getElementById("log");
@@ -131,7 +133,9 @@ function setSelectValue(select, value) {
     categoriaSelect.addEventListener("change", async () => {
       const categoria = categoriaSelect.value.trim();
       especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-      galeria.innerHTML = "";
+      filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
+  galeria.innerHTML = "";
       if (!categoria) {
         await mapearEspeciesCategorias();
         return;
@@ -152,7 +156,9 @@ function setSelectValue(select, value) {
 
     especieSelect.addEventListener("change", async () => {
       const especie = especieSelect.value.trim();
-      galeria.innerHTML = "";
+      filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
+  galeria.innerHTML = "";
       tamanhoSelect.innerHTML = '<option value="">Todos</option>';
       estiloSelect.innerHTML = '<option value="">Todos</option>';
       tamanhoSelect.classList.remove('auto-selected');
@@ -211,9 +217,15 @@ function setSelectValue(select, value) {
           });
         }
 
+        setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
+        setSelectValue(estiloSelect, filtrosPendentes.estilo);
         aplicarFiltros(imagens);
-        tamanhoSelect.onchange = () => aplicarFiltros(imagens);
-        estiloSelect.onchange = () => aplicarFiltros(imagens);
+        tamanhoSelect.onchange = () => setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
+        setSelectValue(estiloSelect, filtrosPendentes.estilo);
+        aplicarFiltros(imagens);
+        estiloSelect.onchange = () => setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
+        setSelectValue(estiloSelect, filtrosPendentes.estilo);
+        aplicarFiltros(imagens);
         log("Espécie carregada com imagens.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
@@ -231,7 +243,9 @@ function setSelectValue(select, value) {
     }
 
     function mostrarImagens(lista) {
-      galeria.innerHTML = "";
+      filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
+  galeria.innerHTML = "";
       lista.forEach(img => {
         const i = document.createElement("img");
         i.src = img.imagem;
