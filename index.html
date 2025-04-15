@@ -3,28 +3,44 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Debug: Dropdown de Categorias</title>
+  <title>Dropdowns Dinâmicos</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
-    select { margin-top: 10px; padding: 5px; }
+    select { margin: 10px; padding: 5px; }
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
   </style>
 </head>
 <body>
 
-  <h1>Seleciona uma Categoria</h1>
-  <select id="categoriaSelect">
-    <option value="">A carregar...</option>
-  </select>
+  <h1>Galeria de Bonsais</h1>
+
+  <label>Categoria:
+    <select id="categoriaSelect">
+      <option value="">A carregar...</option>
+    </select>
+  </label>
+
+  <label>Espécie:
+    <select id="especieSelect">
+      <option value="">Seleciona uma categoria primeiro</option>
+    </select>
+  </label>
 
   <div id="log">Logs:</div>
 
   <script>
-    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=0&single=true&output=csv";
+    const sheetLinks = {
+      "Categoria": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=0&single=true&output=csv",
+      "Coníferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1843801978&single=true&output=csv",
+      "Caducifólias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=201209602&single=true&output=csv",
+      "Perenifólias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=80791632&single=true&output=csv",
+      "Frutíferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1484284661&single=true&output=csv",
+      "Floríferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1968818289&single=true&output=csv"
+    };
 
-    function log(mensagem) {
-      document.getElementById("log").textContent += "\n" + mensagem;
+    function log(msg) {
+      document.getElementById("log").textContent += "\n" + msg;
     }
 
     async function fetchCSV(url) {
@@ -34,23 +50,46 @@
       return rows;
     }
 
+    const categoriaSelect = document.getElementById("categoriaSelect");
+    const especieSelect = document.getElementById("especieSelect");
+
     async function carregarCategorias() {
-      const select = document.getElementById("categoriaSelect");
-      select.innerHTML = '<option value="">Selecionar categoria</option>';
       try {
-        const categorias = await fetchCSV(url);
-        log("Dados recebidos: " + JSON.stringify(categorias));
+        const categorias = await fetchCSV(sheetLinks["Categoria"]);
+        categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
         categorias.forEach(([categoria]) => {
           const opt = document.createElement("option");
           opt.value = categoria;
           opt.textContent = categoria;
-          select.appendChild(opt);
+          categoriaSelect.appendChild(opt);
         });
-      } catch (error) {
-        select.innerHTML = '<option value="">Erro ao carregar categorias</option>';
-        log("Erro ao carregar CSV: " + error.message);
+        log("Categorias carregadas.");
+      } catch (err) {
+        log("Erro ao carregar categorias: " + err.message);
       }
     }
+
+    categoriaSelect.addEventListener("change", async () => {
+      const categoria = categoriaSelect.value;
+      especieSelect.innerHTML = '<option value="">A carregar...</option>';
+      if (!sheetLinks[categoria]) {
+        especieSelect.innerHTML = '<option value="">Sem folha associada</option>';
+        return;
+      }
+      try {
+        const especies = await fetchCSV(sheetLinks[categoria]);
+        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
+        especies.forEach(([esp]) => {
+          const opt = document.createElement("option");
+          opt.value = esp;
+          opt.textContent = esp;
+          especieSelect.appendChild(opt);
+        });
+        log("Espécies carregadas para: " + categoria);
+      } catch (err) {
+        log("Erro ao carregar espécies: " + err.message);
+      }
+    });
 
     document.addEventListener("DOMContentLoaded", carregarCategorias);
   </script>
