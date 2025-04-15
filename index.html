@@ -72,7 +72,7 @@
     async function carregarCategorias() {
       try {
         const categorias = await fetchSheetRange("Categoria", "A1:A100");
-        categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
+        categoriaSelect.innerHTML = '<option value="Todos">Todos</option>';
         categorias.forEach(([categoria]) => {
           const opt = document.createElement("option");
           opt.value = categoria;
@@ -85,7 +85,12 @@
       }
     }
 
-    categoriaSelect.addEventListener("change", async () => {
+    
+categoriaSelect.addEventListener("change", async () => {
+      const categoria = categoriaSelect.value.trim();
+      galeria.innerHTML = "";
+      if (!categoria || categoria === "Todos") return;
+
       const categoria = categoriaSelect.value.trim();
       especieSelect.innerHTML = '<option value="">A carregar...</option>';
       galeria.innerHTML = "";
@@ -175,7 +180,37 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", carregarCategorias);
+    
+document.addEventListener("DOMContentLoaded", async () => {
+  await carregarCategorias();
+  await carregarTodasEspecies();
+});
+
+async function carregarTodasEspecies() {
+  const categorias = await fetchSheetRange("Categoria", "A1:A100");
+  let todasEspecies = [];
+
+  for (const [categoria] of categorias) {
+    try {
+      const especies = await fetchSheetRange(categoria, "A1:A100");
+      especies.forEach(([esp]) => {
+        todasEspecies.push(esp);
+      });
+    } catch (e) {
+      log("Erro ao carregar espécies de " + categoria + ": " + e.message);
+    }
+  }
+
+  todasEspecies.sort((a, b) => a.localeCompare(b));
+  especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
+  todasEspecies.forEach(esp => {
+    const opt = document.createElement("option");
+    opt.value = esp;
+    opt.textContent = esp;
+    especieSelect.appendChild(opt);
+  });
+}
+
   </script>
 
 </body>
