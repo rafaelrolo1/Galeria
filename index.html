@@ -142,14 +142,31 @@
           estiloSelect.appendChild(opt);
         });
 
-        mostrarImagens(imagens);
+        
+    aplicarFiltros(imagens);
+
+    tamanhoSelect.onchange = () => aplicarFiltros(imagens);
+    estiloSelect.onchange = () => aplicarFiltros(imagens);
+    
         log("Dados da espécie carregados.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
       }
     });
 
-    function mostrarImagens(lista) {
+    
+    function aplicarFiltros(lista) {
+      const filtroTamanho = tamanhoSelect.value;
+      const filtroEstilo = estiloSelect.value;
+      const filtrado = lista.filter(img => {
+        return (!filtroTamanho || img.tamanho === filtroTamanho) &&
+               (!filtroEstilo || img.estilo === filtroEstilo);
+      });
+      mostrarImagens(filtrado);
+    }
+
+    function mostrarImagens(lista)
+     {
       galeria.innerHTML = "";
       lista.forEach(img => {
         const i = document.createElement("img");
