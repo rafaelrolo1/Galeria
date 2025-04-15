@@ -1,52 +1,61 @@
 
 <!DOCTYPE html>
-
 <html lang="pt">
 <head>
-<meta charset="utf-8"/>
-<title>Galeria de Bonsais - Completo</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Galeria de Bonsais</title>
+  <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
     select { margin: 10px; padding: 5px; }
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
     .galeria { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
     .galeria img { width: 200px; height: auto; border-radius: 10px; }
+    select.auto-selected { background-color: #d1fadf; border-color: green; }
   </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
-    <select id="categoriaSelect">
-<option value="">A carregar...</option>
-</select>
-</label>
-<label>Espécie:
-    <select id="especieSelect">
-<option value="">Seleciona uma categoria primeiro</option>
-</select>
-</label>
-<label>Tamanho:
-    <select id="tamanhoSelect">
-<option value="">Todos</option>
-</select>
-</label>
-<label>Estilo:
-    <select id="estiloSelect">
-<option value="">Todos</option>
-</select>
-</label>
-<div class="galeria" id="galeria"></div>
-&lt;!-- LOGS (pode remover depois) --&gt;
-<div id="log">Logs:</div>
-&lt;!-- FIM LOGS --&gt;
 
-<script>
+  <h1>Galeria de Bonsais</h1>
+
+  <label>Categoria:
+    <select id="categoriaSelect">
+      <option value="">Selecionar categoria</option>
+    </select>
+  </label>
+
+  <label>Espécie:
+    <input type="text" id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" />
+    <select id="especieSelect">
+      <option value="">Selecionar espécie</option>
+    </select>
+  </label>
+
+  <label>Tamanho:
+    <select id="tamanhoSelect">
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <label>Estilo:
+    <select id="estiloSelect">
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <div class="galeria" id="galeria"></div>
+
+  <!-- LOGS (pode remover depois) -->
+  <div id="log">Logs:</div>
+  <!-- FIM LOGS -->
+
+  <script>
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
     const categoriaSelect = document.getElementById("categoriaSelect");
     const especieSelect = document.getElementById("especieSelect");
+    const searchInput = document.getElementById("searchEspecie");
     const tamanhoSelect = document.getElementById("tamanhoSelect");
     const estiloSelect = document.getElementById("estiloSelect");
     const galeria = document.getElementById("galeria");
@@ -59,9 +68,8 @@
 
     async function fetchSheetRange(sheetName, range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${apiKey}`;
-      log("Fetching: " + url);
       const response = await fetch(url);
-      if (!response.ok) throw new Error("HTTP " + response.status);
+      if (!response.ok) throw new Error("Erro HTTP " + response.status);
       const data = await response.json();
       return data.values || [];
     }
@@ -82,43 +90,76 @@
       }
     }
 
+    let especieParaCategoria = {};
+
+    async function mapearEspeciesCategorias() {
+      const categorias = await fetchSheetRange("Categoria", "A1:A100");
+      let todas = [];
+      for (const [categoria] of categorias) {
+        try {
+          const especies = await fetchSheetRange(categoria, "A1:A100");
+          especies.forEach(([esp]) => {
+            todas.push(esp);
+            especieParaCategoria[esp] = categoria;
+          });
+        } catch (e) {
+          log("Erro ao mapear categoria de " + categoria + ": " + e.message);
+        }
+      }
+      todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
+      especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
+      todas.forEach(esp => {
+        const opt = document.createElement("option");
+        opt.value = esp;
+        opt.textContent = esp;
+        especieSelect.appendChild(opt);
+      });
+      log("Espécies carregadas.");
+    }
+
+    searchInput.addEventListener("input", function () {
+      const filtro = this.value.toLowerCase();
+      const options = especieSelect.options;
+      for (let i = 0; i < options.length; i++) {
+        const opt = options[i];
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = filtro === "" || text.includes(filtro) ? "" : "none";
+      }
+    });
+
     categoriaSelect.addEventListener("change", async () => {
       const categoria = categoriaSelect.value.trim();
-      especieSelect.innerHTML = '<option value="">A carregar...</option>';
+      especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
       galeria.innerHTML = "";
-      if (!categoria) return;
-
+      if (!categoria) {
+        await mapearEspeciesCategorias();
+        return;
+      }
       try {
         const especies = await fetchSheetRange(categoria, "A1:A100");
-        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
         especies.forEach(([especie]) => {
           const opt = document.createElement("option");
           opt.value = especie;
           opt.textContent = especie;
           especieSelect.appendChild(opt);
         });
-        log("Espécies carregadas.");
+        log("Espécies da categoria carregadas.");
       } catch (err) {
-        especieSelect.innerHTML = '<option value="">Erro ao carregar</option>';
         log("Erro ao carregar espécies: " + err.message);
       }
     });
 
     especieSelect.addEventListener("change", async () => {
-
-    const especie = especieSelect.value.trim();
-    galeria.innerHTML = "";
-    tamanhoSelect.innerHTML = '<option value="">Todos</option>';
-    estiloSelect.innerHTML = '<option value="">Todos</option>';
-
-    if (especieParaCategoria[especie]) {
-      categoriaSelect.value = especieParaCategoria[especie];
-    }
-
       const especie = especieSelect.value.trim();
       galeria.innerHTML = "";
       tamanhoSelect.innerHTML = '<option value="">Todos</option>';
       estiloSelect.innerHTML = '<option value="">Todos</option>';
+      tamanhoSelect.classList.remove('auto-selected');
+      estiloSelect.classList.remove('auto-selected');
+
+      if (especieParaCategoria[especie]) {
+        categoriaSelect.value = especieParaCategoria[especie];
+      }
 
       if (!especie) return;
 
@@ -135,45 +176,60 @@
           if (imagem) imagens.push({ tamanho, estilo, imagem });
         });
 
-        tamanhos.forEach(t => {
+        if (tamanhos.size === 1) {
+          const unico = Array.from(tamanhos)[0];
           const opt = document.createElement("option");
-          opt.value = t;
-          opt.textContent = t;
+          opt.value = unico;
+          opt.textContent = unico;
           tamanhoSelect.appendChild(opt);
-        });
+          tamanhoSelect.value = unico;
+          tamanhoSelect.classList.add('auto-selected');
+        } else {
+          tamanhos.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t;
+            tamanhoSelect.appendChild(opt);
+          });
+        }
 
-        estilos.forEach(e => {
+        if (estilos.size === 1) {
+          const unico = Array.from(estilos)[0];
           const opt = document.createElement("option");
-          opt.value = e;
-          opt.textContent = e;
+          opt.value = unico;
+          opt.textContent = unico;
           estiloSelect.appendChild(opt);
-        });
+          estiloSelect.value = unico;
+          estiloSelect.classList.add('auto-selected');
+        } else {
+          estilos.forEach(e => {
+            const opt = document.createElement("option");
+            opt.value = e;
+            opt.textContent = e;
+            estiloSelect.appendChild(opt);
+          });
+        }
 
-        
-    aplicarFiltros(imagens);
-
-    tamanhoSelect.onchange = () => aplicarFiltros(imagens);
-    estiloSelect.onchange = () => aplicarFiltros(imagens);
-    
-        log("Dados da espécie carregados.");
+        aplicarFiltros(imagens);
+        tamanhoSelect.onchange = () => aplicarFiltros(imagens);
+        estiloSelect.onchange = () => aplicarFiltros(imagens);
+        log("Espécie carregada com imagens.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
       }
     });
 
-    
     function aplicarFiltros(lista) {
       const filtroTamanho = tamanhoSelect.value;
       const filtroEstilo = estiloSelect.value;
-      const filtrado = lista.filter(img => {
-        return (!filtroTamanho || img.tamanho === filtroTamanho) &&
-               (!filtroEstilo || img.estilo === filtroEstilo);
-      });
+      const filtrado = lista.filter(img => (
+        (!filtroTamanho || img.tamanho === filtroTamanho) &&
+        (!filtroEstilo || img.estilo === filtroEstilo)
+      ));
       mostrarImagens(filtrado);
     }
 
-    function mostrarImagens(lista)
-     {
+    function mostrarImagens(lista) {
       galeria.innerHTML = "";
       lista.forEach(img => {
         const i = document.createElement("img");
@@ -182,91 +238,11 @@
       });
     }
 
-    
-    async function carregarTodasEspecies() {
-      try {
-        const categorias = await fetchSheetRange("Categoria", "A1:A100");
-        let todas = [];
-        for (const [categoria] of categorias) {
-          const especies = await fetchSheetRange(categoria, "A1:A100");
-          especies.forEach(([e]) => todas.push(e));
-        }
-        todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
-        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-        todas.forEach(esp => {
-          const opt = document.createElement("option");
-          opt.value = esp;
-          opt.textContent = esp;
-          especieSelect.appendChild(opt);
-        });
-        log("Todas as espécies carregadas.");
-      } catch (err) {
-        log("Erro ao carregar todas as espécies: " + err.message);
-      }
-    }
-
-
-    categoriaSelect.addEventListener("change", async () => {
-      const categoria = categoriaSelect.value.trim();
-      especieSelect.innerHTML = '<option value="">A carregar...</option>';
-      galeria.innerHTML = "";
-      if (!categoria) {
-        await carregarTodasEspecies();
-        return;
-      }
-
-      try {
-        const especies = await fetchSheetRange(categoria, "A1:A100");
-        especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-        especies.forEach(([especie]) => {
-          const opt = document.createElement("option");
-          opt.value = especie;
-          opt.textContent = especie;
-          especieSelect.appendChild(opt);
-        });
-        log("Espécies da categoria carregadas.");
-      } catch (err) {
-        especieSelect.innerHTML = '<option value="">Erro ao carregar</option>';
-        log("Erro ao carregar espécies: " + err.message);
-      }
-    });
-
-
-    
-    let especieParaCategoria = {{}};
-
-    async function mapearEspeciesCategorias() {{
-      const categorias = await fetchSheetRange("Categoria", "A1:A100");
-      for (const [categoria] of categorias) {{
-        try {{
-          const especies = await fetchSheetRange(categoria, "A1:A100");
-          especies.forEach(([esp]) => {{
-            especieParaCategoria[esp] = categoria;
-          }});
-        }} catch (e) {{
-          log("Erro ao mapear categoria de " + categoria + ": " + e.message);
-        }}
-      }}
-      log("Mapeamento de espécies carregado.");
-    }}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await mapearEspeciesCategorias();
-
-    document.getElementById("searchEspecie").addEventListener("input", function () {
-      const filtro = this.value.toLowerCase();
-      const options = especieSelect.options;
-      for (let i = 0; i < options.length; i++) {
-        const opt = options[i];
-        const text = opt.textContent.toLowerCase();
-        opt.style.display = filtro === "" || text.includes(filtro) ? "" : "none";
-      }
-    });
-
+    document.addEventListener("DOMContentLoaded", async () => {
       await carregarCategorias();
-      await carregarTodasEspecies();
+      await mapearEspeciesCategorias();
     });
-
   </script>
+
 </body>
 </html>
