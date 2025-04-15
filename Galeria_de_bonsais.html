@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Debug: Dropdown de Categorias</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { color: darkgreen; }
+    select { margin-top: 10px; padding: 5px; }
+    #log { margin-top: 20px; color: red; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h1>Seleciona uma Categoria</h1>
+  <select id="categoriaSelect">
+    <option value="">A carregar...</option>
+  </select>
+
+  <div id="log">Logs:</div>
+
+  <script>
+    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=0&single=true&output=csv";
+
+    function log(mensagem) {
+      document.getElementById("log").textContent += "\n" + mensagem;
+    }
+
+    async function fetchCSV(url) {
+      const response = await fetch(url);
+      const text = await response.text();
+      const rows = text.trim().split('\n').map(r => r.split(','));
+      return rows;
+    }
+
+    async function carregarCategorias() {
+      const select = document.getElementById("categoriaSelect");
+      select.innerHTML = '<option value="">Selecionar categoria</option>';
+      try {
+        const categorias = await fetchCSV(url);
+        log("Dados recebidos: " + JSON.stringify(categorias));
+        categorias.forEach(([categoria]) => {
+          const opt = document.createElement("option");
+          opt.value = categoria;
+          opt.textContent = categoria;
+          select.appendChild(opt);
+        });
+      } catch (error) {
+        select.innerHTML = '<option value="">Erro ao carregar categorias</option>';
+        log("Erro ao carregar CSV: " + error.message);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", carregarCategorias);
+  </script>
+
+</body>
+</html>
