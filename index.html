@@ -36,7 +36,6 @@
 <option value="">Todos</option>
 </select>
 </label>
-
 <div class="galeria" id="galeria"></div>
 &lt;!-- LOGS (pode remover depois) --&gt;
 <div id="log">Logs:</div>
@@ -224,6 +223,17 @@
 
 
     document.addEventListener("DOMContentLoaded", async () => {
+
+    document.getElementById("searchEspecie").addEventListener("input", function () {
+      const filtro = this.value.toLowerCase();
+      const options = especieSelect.options;
+      for (let i = 0; i < options.length; i++) {
+        const opt = options[i];
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = filtro === "" || text.includes(filtro) ? "" : "none";
+      }
+    });
+
       await carregarCategorias();
       await carregarTodasEspecies();
     });
