@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
+
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <title>Galeria de Bonsais</title>
-  <style>
+<meta charset="utf-8"/>
+<title>Galeria de Bonsais</title>
+<style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
     select { margin: 10px; padding: 5px; }
@@ -15,41 +16,33 @@
   </style>
 </head>
 <body>
-
-  <h1>Galeria de Bonsais</h1>
-
-  <label>Categoria:
+<h1>Galeria de Bonsais</h1>
+<label>Categoria:
     <select id="categoriaSelect">
-      <option value="">Selecionar categoria</option>
-    </select>
-  </label>
-
-  <label>Espécie:
-    <input type="text" id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" />
-    <select id="especieSelect">
-      <option value="">Selecionar espécie</option>
-    </select>
-  </label>
-
-  <label>Tamanho:
+<option value="">Selecionar categoria</option>
+</select>
+</label>
+<label>Espécie:
+    <input id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" type="text"/>
+<select id="especieSelect">
+<option value="">Selecionar espécie</option>
+</select>
+</label>
+<label>Tamanho:
     <select id="tamanhoSelect">
-      <option value="">Todos</option>
-    </select>
-  </label>
-
-  <label>Estilo:
+<option value="">Todos</option>
+</select>
+</label>
+<label>Estilo:
     <select id="estiloSelect">
-      <option value="">Todos</option>
-    </select>
-  </label>
-
-  <div class="galeria" id="galeria"></div>
-
-  <!-- LOGS (pode remover depois) -->
-  <div id="log">Logs:</div>
-  <!-- FIM LOGS -->
-
-  <script>
+<option value="">Todos</option>
+</select>
+</label>
+<div class="galeria" id="galeria"></div>
+<!-- LOGS (pode remover depois) -->
+<div id="log">Logs:</div>
+<!-- FIM LOGS -->
+<script>
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
@@ -59,6 +52,7 @@
     const tamanhoSelect = document.getElementById("tamanhoSelect");
     const estiloSelect = document.getElementById("estiloSelect");
     const galeria = document.getElementById("galeria");
+let filtrosPendentes = { tamanho: "", estilo: "" };
 
     function log(msg) {
       const el = document.getElementById("log");
@@ -131,6 +125,8 @@
       const categoria = categoriaSelect.value.trim();
       especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
       galeria.innerHTML = "";
+  filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
       if (!categoria) {
         await mapearEspeciesCategorias();
         return;
@@ -152,6 +148,8 @@
     especieSelect.addEventListener("change", async () => {
       const especie = especieSelect.value.trim();
       galeria.innerHTML = "";
+  filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
       tamanhoSelect.innerHTML = '<option value="">Todos</option>';
       estiloSelect.innerHTML = '<option value="">Todos</option>';
       tamanhoSelect.classList.remove('auto-selected');
@@ -183,6 +181,7 @@
           opt.textContent = unico;
           tamanhoSelect.appendChild(opt);
           tamanhoSelect.value = unico;
+          filtrosPendentes.tamanho = unico;
           tamanhoSelect.classList.add('auto-selected');
         } else {
           tamanhos.forEach(t => {
@@ -200,6 +199,7 @@
           opt.textContent = unico;
           estiloSelect.appendChild(opt);
           estiloSelect.value = unico;
+          filtrosPendentes.estilo = unico;
           estiloSelect.classList.add('auto-selected');
         } else {
           estilos.forEach(e => {
@@ -210,9 +210,15 @@
           });
         }
 
+        tamanhoSelect.value = filtrosPendentes.tamanho;
+        estiloSelect.value = filtrosPendentes.estilo;
         aplicarFiltros(imagens);
-        tamanhoSelect.onchange = () => aplicarFiltros(imagens);
-        estiloSelect.onchange = () => aplicarFiltros(imagens);
+        tamanhoSelect.onchange = () => tamanhoSelect.value = filtrosPendentes.tamanho;
+        estiloSelect.value = filtrosPendentes.estilo;
+        aplicarFiltros(imagens);
+        estiloSelect.onchange = () => tamanhoSelect.value = filtrosPendentes.tamanho;
+        estiloSelect.value = filtrosPendentes.estilo;
+        aplicarFiltros(imagens);
         log("Espécie carregada com imagens.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
@@ -231,9 +237,20 @@
 
     function mostrarImagens(lista) {
       galeria.innerHTML = "";
+  filtrosPendentes.tamanho = tamanhoSelect.value;
+  filtrosPendentes.estilo = estiloSelect.value;
       lista.forEach(img => {
         const i = document.createElement("img");
         i.src = img.imagem;
+        i.style.cursor = 'pointer';
+        i.onclick = () => {
+          especieSelect.value = especie;
+          categoriaSelect.value = especieParaCategoria[especie];
+          tamanhoSelect.value = img.tamanho;
+          estiloSelect.value = img.estilo;
+          filtrosPendentes = { tamanho: img.tamanho, estilo: img.estilo };
+          especieSelect.dispatchEvent(new Event('change'));
+        };
         galeria.appendChild(i);
       });
     }
@@ -243,6 +260,5 @@
       await mapearEspeciesCategorias();
     });
   </script>
-
 </body>
 </html>
