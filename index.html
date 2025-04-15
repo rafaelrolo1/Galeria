@@ -3,7 +3,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Galeria de Bonsais - Completo</title>
+  <title>Galeria de Bonsais - Corrigido</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
@@ -19,13 +19,13 @@
 
   <label>Categoria:
     <select id="categoriaSelect">
-      <option value="">A carregar...</option>
+      <option value="">Selecionar categoria</option>
     </select>
   </label>
 
   <label>Espécie:
     <select id="especieSelect">
-      <option value="">Seleciona uma categoria primeiro</option>
+      <option value="">A carregar todas...</option>
     </select>
   </label>
 
@@ -62,9 +62,8 @@
 
     async function fetchSheetRange(sheetName, range) {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${apiKey}`;
-      log("Fetching: " + url);
       const response = await fetch(url);
-      if (!response.ok) throw new Error("HTTP " + response.status);
+      if (!response.ok) throw new Error("Erro HTTP " + response.status);
       const data = await response.json();
       return data.values || [];
     }
@@ -85,27 +84,27 @@
       }
     }
 
-    categoriaSelect.addEventListener("change", async () => {
-      const categoria = categoriaSelect.value.trim();
-      especieSelect.innerHTML = '<option value="">A carregar...</option>';
-      galeria.innerHTML = "";
-      if (!categoria) return;
-
+    async function carregarTodasEspecies() {
       try {
-        const especies = await fetchSheetRange(categoria, "A1:A100");
+        const categorias = await fetchSheetRange("Categoria", "A1:A100");
+        let todas = [];
+        for (const [categoria] of categorias) {
+          const especies = await fetchSheetRange(categoria, "A1:A100");
+          especies.forEach(([e]) => todas.push(e));
+        }
+        todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
         especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-        especies.forEach(([especie]) => {
+        todas.forEach(esp => {
           const opt = document.createElement("option");
-          opt.value = especie;
-          opt.textContent = especie;
+          opt.value = esp;
+          opt.textContent = esp;
           especieSelect.appendChild(opt);
         });
-        log("Espécies carregadas.");
+        log("Todas as espécies carregadas.");
       } catch (err) {
-        especieSelect.innerHTML = '<option value="">Erro ao carregar</option>';
         log("Erro ao carregar espécies: " + err.message);
       }
-    });
+    }
 
     especieSelect.addEventListener("change", async () => {
       const especie = especieSelect.value.trim();
@@ -142,31 +141,26 @@
           estiloSelect.appendChild(opt);
         });
 
-        
-    aplicarFiltros(imagens);
-
-    tamanhoSelect.onchange = () => aplicarFiltros(imagens);
-    estiloSelect.onchange = () => aplicarFiltros(imagens);
-    
-        log("Dados da espécie carregados.");
+        aplicarFiltros(imagens);
+        tamanhoSelect.onchange = () => aplicarFiltros(imagens);
+        estiloSelect.onchange = () => aplicarFiltros(imagens);
+        log("Espécie carregada com imagens.");
       } catch (err) {
         log("Erro ao carregar dados da espécie: " + err.message);
       }
     });
 
-    
     function aplicarFiltros(lista) {
       const filtroTamanho = tamanhoSelect.value;
       const filtroEstilo = estiloSelect.value;
-      const filtrado = lista.filter(img => {
-        return (!filtroTamanho || img.tamanho === filtroTamanho) &&
-               (!filtroEstilo || img.estilo === filtroEstilo);
-      });
+      const filtrado = lista.filter(img => (
+        (!filtroTamanho || img.tamanho === filtroTamanho) &&
+        (!filtroEstilo || img.estilo === filtroEstilo)
+      ));
       mostrarImagens(filtrado);
     }
 
-    function mostrarImagens(lista)
-     {
+    function mostrarImagens(lista) {
       galeria.innerHTML = "";
       lista.forEach(img => {
         const i = document.createElement("img");
@@ -175,8 +169,12 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", carregarCategorias);
+    document.addEventListener("DOMContentLoaded", async () => {
+      await carregarCategorias();
+      await carregarTodasEspecies();
+    });
   </script>
 
 </body>
 </html>
+
