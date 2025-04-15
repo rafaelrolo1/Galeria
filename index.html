@@ -3,7 +3,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Debug Categoria</title>
+  <title>Debug v2 - Categoria</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
@@ -32,22 +32,28 @@
   <script>
     const sheetLinks = {
       "Categoria": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=0&single=true&output=csv",
-      "Coniferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1843801978&single=true&output=csv",
-      "Caducifolias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=201209602&single=true&output=csv",
-      "Perenifolias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=80791632&single=true&output=csv",
-      "Frutiferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1484284661&single=true&output=csv",
-      "Floriferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pubhtml?gid=1968818289&single=true"
+      "Coniferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1843801978&single=true&output=csv"
     };
 
     function log(msg) {
-      document.getElementById("log").textContent += "\n" + msg;
+      const el = document.getElementById("log");
+      el.textContent += "\n" + msg;
+      console.log(msg);
     }
 
     async function fetchCSV(url) {
-      const response = await fetch(url);
-      const text = await response.text();
-      const rows = text.trim().split('\n').map(r => r.split(','));
-      return rows;
+      try {
+        log("A carregar CSV: " + url);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const text = await response.text();
+        log("CSV carregado com sucesso.");
+        const rows = text.trim().split('\n').map(r => r.split(','));
+        return rows;
+      } catch (error) {
+        log("ERRO ao buscar CSV: " + error.message);
+        throw error;
+      }
     }
 
     const categoriaSelect = document.getElementById("categoriaSelect");
@@ -58,9 +64,10 @@
         const categorias = await fetchCSV(sheetLinks["Categoria"]);
         categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
         categorias.forEach(([categoria]) => {
+          const value = categoria.trim();
           const opt = document.createElement("option");
-          opt.value = categoria.trim();
-          opt.textContent = categoria.trim();
+          opt.value = value;
+          opt.textContent = value;
           categoriaSelect.appendChild(opt);
         });
         log("Categorias carregadas.");
@@ -70,13 +77,12 @@
     }
 
     categoriaSelect.addEventListener("change", async () => {
-      const rawCategoria = categoriaSelect.value;
-      const categoria = rawCategoria.trim();
-      log("Categoria selecionada: '" + categoria + "'");
+      const categoria = categoriaSelect.value.trim();
+      log("Selecionado: '" + categoria + "'");
       especieSelect.innerHTML = '<option value="">A carregar...</option>';
       if (!sheetLinks[categoria]) {
-        especieSelect.innerHTML = '<option value=''>Sem folha associada</option>';
-        log("Não encontrada no sheetLinks: '" + categoria + "'");
+        especieSelect.innerHTML = '<option value="">Sem folha associada</option>';
+        log("Categoria não encontrada no dicionário.");
         return;
       }
       try {
@@ -88,7 +94,7 @@
           opt.textContent = esp;
           especieSelect.appendChild(opt);
         });
-        log("Espécies carregadas para: " + categoria);
+        log("Espécies carregadas.");
       } catch (err) {
         log("Erro ao carregar espécies: " + err.message);
       }
