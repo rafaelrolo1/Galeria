@@ -72,7 +72,7 @@
     async function carregarCategorias() {
       try {
         const categorias = await fetchSheetRange("Categoria", "A1:A100");
-        categoriaSelect.innerHTML = '<option value="Todos">Todos</option>';
+        categoriaSelect.innerHTML = '';
         categorias.forEach(([categoria]) => {
           const opt = document.createElement("option");
           opt.value = categoria;
