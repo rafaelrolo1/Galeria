@@ -1,48 +1,52 @@
 
 <!DOCTYPE html>
-
 <html lang="pt">
 <head>
-<meta charset="utf-8"/>
-<title>Galeria de Bonsais</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Galeria de Bonsais</title>
+  <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
     select { margin: 10px; padding: 5px; }
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
     .galeria { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
-    .galeria img { width: 200px; height: auto; border-radius: 10px; }
+    .galeria img { width: 200px; height: auto; border-radius: 10px; cursor: pointer; }
     select.auto-selected { background-color: #d1fadf; border-color: green; }
   </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
+
+  <h1>Galeria de Bonsais</h1>
+
+  <label>Categoria:
     <select id="categoriaSelect">
-<option value="">Selecionar categoria</option>
-</select>
-</label>
-<label>Espécie:
-    <input id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" type="text"/>
-<select id="especieSelect">
-<option value="">Selecionar espécie</option>
-</select>
-</label>
-<label>Tamanho:
+      <option value="">Selecionar categoria</option>
+    </select>
+  </label>
+
+  <label>Espécie:
+    <input type="text" id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" />
+    <select id="especieSelect">
+      <option value="">Selecionar espécie</option>
+    </select>
+  </label>
+
+  <label>Tamanho:
     <select id="tamanhoSelect">
-<option value="">Todos</option>
-</select>
-</label>
-<label>Estilo:
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <label>Estilo:
     <select id="estiloSelect">
-<option value="">Todos</option>
-</select>
-</label>
-<div class="galeria" id="galeria"></div>
-<!-- LOGS (pode remover depois) -->
-<div id="log">Logs:</div>
-<!-- FIM LOGS -->
-<script>
+      <option value="">Todos</option>
+    </select>
+  </label>
+
+  <div class="galeria" id="galeria"></div>
+  <div id="log">Logs:</div>
+
+  <script>
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
@@ -53,15 +57,8 @@
     const estiloSelect = document.getElementById("estiloSelect");
     const galeria = document.getElementById("galeria");
 
-let filtrosPendentes = { tamanho: "", estilo: "" };
-
-function setSelectValue(select, value) {
-  const optionExists = [...select.options].some(opt => opt.value === value);
-  if (optionExists) {
-    select.value = value;
-  }
-}
-
+    let filtrosPendentes = { tamanho: "", estilo: "" };
+    let especieParaCategoria = {};
 
     function log(msg) {
       const el = document.getElementById("log");
@@ -77,39 +74,35 @@ function setSelectValue(select, value) {
       return data.values || [];
     }
 
-    async function carregarCategorias() {
-      try {
-        const categorias = await fetchSheetRange("Categoria", "A1:A100");
-        categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
-        categorias.forEach(([categoria]) => {
-          const opt = document.createElement("option");
-          opt.value = categoria;
-          opt.textContent = categoria;
-          categoriaSelect.appendChild(opt);
-        });
-        log("Categorias carregadas.");
-      } catch (err) {
-        log("Erro ao carregar categorias: " + err.message);
-      }
+    function setSelectValue(select, value) {
+      const exists = [...select.options].some(opt => opt.value === value);
+      if (exists) select.value = value;
     }
 
-    let especieParaCategoria = {};
+    async function carregarCategorias() {
+      const categorias = await fetchSheetRange("Categoria", "A1:A100");
+      categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
+      categorias.forEach(([cat]) => {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        categoriaSelect.appendChild(opt);
+      });
+    }
 
     async function mapearEspeciesCategorias() {
       const categorias = await fetchSheetRange("Categoria", "A1:A100");
       let todas = [];
-      for (const [categoria] of categorias) {
+      for (const [cat] of categorias) {
         try {
-          const especies = await fetchSheetRange(categoria, "A1:A100");
+          const especies = await fetchSheetRange(cat, "A1:A100");
           especies.forEach(([esp]) => {
             todas.push(esp);
-            especieParaCategoria[esp] = categoria;
+            especieParaCategoria[esp] = cat;
           });
-        } catch (e) {
-          log("Erro ao mapear categoria de " + categoria + ": " + e.message);
-        }
+        } catch {}
       }
-      todas = [...new Set(todas)].sort((a, b) => a.localeCompare(b));
+      todas = [...new Set(todas)].sort();
       especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
       todas.forEach(esp => {
         const opt = document.createElement("option");
@@ -117,136 +110,104 @@ function setSelectValue(select, value) {
         opt.textContent = esp;
         especieSelect.appendChild(opt);
       });
-      log("Espécies carregadas.");
     }
 
     searchInput.addEventListener("input", function () {
       const filtro = this.value.toLowerCase();
-      const options = especieSelect.options;
-      for (let i = 0; i < options.length; i++) {
-        const opt = options[i];
-        const text = opt.textContent.toLowerCase();
-        opt.style.display = filtro === "" || text.includes(filtro) ? "" : "none";
-      }
+      [...especieSelect.options].forEach(opt => {
+        opt.style.display = filtro === "" || opt.textContent.toLowerCase().includes(filtro) ? "" : "none";
+      });
     });
 
     categoriaSelect.addEventListener("change", async () => {
-      const categoria = categoriaSelect.value.trim();
+      const cat = categoriaSelect.value.trim();
       especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-      filtrosPendentes.tamanho = tamanhoSelect.value;
-  filtrosPendentes.estilo = estiloSelect.value;
-  galeria.innerHTML = "";
-      if (!categoria) {
-        await mapearEspeciesCategorias();
-        return;
-      }
-      try {
-        const especies = await fetchSheetRange(categoria, "A1:A100");
-        especies.forEach(([especie]) => {
-          const opt = document.createElement("option");
-          opt.value = especie;
-          opt.textContent = especie;
-          especieSelect.appendChild(opt);
-        });
-        log("Espécies da categoria carregadas.");
-      } catch (err) {
-        log("Erro ao carregar espécies: " + err.message);
-      }
+      galeria.innerHTML = "";
+      if (!cat) return await mapearEspeciesCategorias();
+      const especies = await fetchSheetRange(cat, "A1:A100");
+      especies.forEach(([esp]) => {
+        const opt = document.createElement("option");
+        opt.value = esp;
+        opt.textContent = esp;
+        especieSelect.appendChild(opt);
+      });
     });
 
     especieSelect.addEventListener("change", async () => {
-      const especie = especieSelect.value.trim();
-      filtrosPendentes.tamanho = tamanhoSelect.value;
-  filtrosPendentes.estilo = estiloSelect.value;
-  galeria.innerHTML = "";
+      const esp = especieSelect.value.trim();
+      galeria.innerHTML = "";
       tamanhoSelect.innerHTML = '<option value="">Todos</option>';
       estiloSelect.innerHTML = '<option value="">Todos</option>';
-      tamanhoSelect.classList.remove('auto-selected');
-      estiloSelect.classList.remove('auto-selected');
+      tamanhoSelect.classList.remove("auto-selected");
+      estiloSelect.classList.remove("auto-selected");
 
-      if (especieParaCategoria[especie]) {
-        categoriaSelect.value = especieParaCategoria[especie];
+      filtrosPendentes.tamanho = tamanhoSelect.value;
+      filtrosPendentes.estilo = estiloSelect.value;
+
+      if (especieParaCategoria[esp]) categoriaSelect.value = especieParaCategoria[esp];
+      if (!esp) return;
+
+      const dados = await fetchSheetRange(esp, "A2:C200");
+      const tamanhos = new Set(), estilos = new Set(), imagens = [];
+      dados.forEach(row => {
+        const [tam, est, img] = row;
+        if (tam) tamanhos.add(tam);
+        if (est) estilos.add(est);
+        if (img) imagens.push({ tamanho: tam, estilo: est, imagem: img });
+      });
+
+      if (tamanhos.size === 1) {
+        const unico = [...tamanhos][0];
+        const opt = new Option(unico, unico);
+        tamanhoSelect.appendChild(opt);
+        tamanhoSelect.value = unico;
+        tamanhoSelect.classList.add("auto-selected");
+        filtrosPendentes.tamanho = unico;
+      } else {
+        tamanhos.forEach(t => tamanhoSelect.appendChild(new Option(t, t)));
       }
 
-      if (!especie) return;
-
-      try {
-        const dados = await fetchSheetRange(especie, "A2:C200");
-        const tamanhos = new Set();
-        const estilos = new Set();
-        const imagens = [];
-
-        dados.forEach(row => {
-          const [tamanho, estilo, imagem] = row;
-          if (tamanho) tamanhos.add(tamanho);
-          if (estilo) estilos.add(estilo);
-          if (imagem) imagens.push({ tamanho, estilo, imagem });
-        });
-
-        if (tamanhos.size === 1) {
-          const unico = Array.from(tamanhos)[0];
-          const opt = document.createElement("option");
-          opt.value = unico;
-          opt.textContent = unico;
-          tamanhoSelect.appendChild(opt);
-          tamanhoSelect.value = unico;
-          tamanhoSelect.classList.add('auto-selected');
-        } else {
-          tamanhos.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t;
-            tamanhoSelect.appendChild(opt);
-          });
-        }
-
-        if (estilos.size === 1) {
-          const unico = Array.from(estilos)[0];
-          const opt = document.createElement("option");
-          opt.value = unico;
-          opt.textContent = unico;
-          estiloSelect.appendChild(opt);
-          estiloSelect.value = unico;
-          estiloSelect.classList.add('auto-selected');
-        } else {
-          estilos.forEach(e => {
-            const opt = document.createElement("option");
-            opt.value = e;
-            opt.textContent = e;
-            estiloSelect.appendChild(opt);
-          });
-        }
-
-        setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
-        setSelectValue(estiloSelect, filtrosPendentes.estilo);
-        aplicarFiltros(imagens);
-        tamanhoSelect.onchange = () => setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
-        setSelectValue(estiloSelect, filtrosPendentes.estilo);
-        aplicarFiltros(imagens);
-        estiloSelect.onchange = () => setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
-        setSelectValue(estiloSelect, filtrosPendentes.estilo);
-        aplicarFiltros(imagens);
-        log("Espécie carregada com imagens.");
-      } catch (err) {
-        log("Erro ao carregar dados da espécie: " + err.message);
+      if (estilos.size === 1) {
+        const unico = [...estilos][0];
+        const opt = new Option(unico, unico);
+        estiloSelect.appendChild(opt);
+        estiloSelect.value = unico;
+        estiloSelect.classList.add("auto-selected");
+        filtrosPendentes.estilo = unico;
+      } else {
+        estilos.forEach(e => estiloSelect.appendChild(new Option(e, e)));
       }
+
+      setSelectValue(tamanhoSelect, filtrosPendentes.tamanho);
+      setSelectValue(estiloSelect, filtrosPendentes.estilo);
+      aplicarFiltros(imagens);
+
+      tamanhoSelect.onchange = () => aplicarFiltros(imagens);
+      estiloSelect.onchange = () => aplicarFiltros(imagens);
+
+      galeria.innerHTML = "";
+      imagens.forEach(img => {
+        const i = document.createElement("img");
+        i.src = img.imagem;
+        i.title = `Tamanho: ${img.tamanho}\nEstilo: ${img.estilo}`;
+        i.onclick = async () => {
+          filtrosPendentes.tamanho = img.tamanho;
+          filtrosPendentes.estilo = img.estilo;
+          especieSelect.value = esp;
+          categoriaSelect.value = especieParaCategoria[esp];
+          especieSelect.dispatchEvent(new Event("change"));
+        };
+        galeria.appendChild(i);
+      });
     });
 
     function aplicarFiltros(lista) {
-      const filtroTamanho = tamanhoSelect.value;
-      const filtroEstilo = estiloSelect.value;
-      const filtrado = lista.filter(img => (
-        (!filtroTamanho || img.tamanho === filtroTamanho) &&
-        (!filtroEstilo || img.estilo === filtroEstilo)
-      ));
-      mostrarImagens(filtrado);
-    }
-
-    function mostrarImagens(lista) {
-      filtrosPendentes.tamanho = tamanhoSelect.value;
-  filtrosPendentes.estilo = estiloSelect.value;
-  galeria.innerHTML = "";
-      lista.forEach(img => {
+      const t = tamanhoSelect.value;
+      const e = estiloSelect.value;
+      galeria.innerHTML = "";
+      lista.filter(img =>
+        (!t || img.tamanho === t) && (!e || img.estilo === e)
+      ).forEach(img => {
         const i = document.createElement("img");
         i.src = img.imagem;
         galeria.appendChild(i);
@@ -258,5 +219,6 @@ function setSelectValue(select, value) {
       await mapearEspeciesCategorias();
     });
   </script>
+
 </body>
 </html>
