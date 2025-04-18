@@ -41,7 +41,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v1.12):</div>
+<div id="log">logs (v1.13):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -52,7 +52,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v1.12):";
+  const VERSAO_LOG = "logs (v1.13):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -81,7 +81,7 @@
   }
 
   async function carregarCategorias() {
-  log("Iniciando carregarCategorias()...");
+  log("Iniciando carregarCategorias()..."); console.log("DEBUG: carregarCategorias iniciado");
     const categorias = await fetchSheetRange("Categoria", "A1:A100");
     categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
     categorias.forEach(([cat]) => {
@@ -93,7 +93,7 @@
   }
 
   async function mapearEspeciesCategorias() {
-  log("Iniciando mapearEspeciesCategorias()...");
+  log("Iniciando mapearEspeciesCategorias()..."); console.log("DEBUG: mapearEspeciesCategorias iniciado");
     const categorias = await fetchSheetRange("Categoria", "A1:A100");
     let todas = [];
     for (const [cat] of categorias) {
@@ -194,7 +194,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-  log("Evento DOMContentLoaded capturado.");
+  log("Evento DOMContentLoaded capturado."); console.log("DEBUG: DOMContentLoaded");
     await carregarCategorias();
     await mapearEspeciesCategorias();
   });
