@@ -48,9 +48,12 @@
     let filtrosPendentes = { estilo: "" };
     let especieParaCategoria = {};
 
-    function log(msg) {
+    const VERSAO_LOG = "versao: galeria_google_api_numerada_corrigida_imagens_ok";
+let logIniciado = false;
+function log(msg) {
       const el = document.getElementById("log");
-      el.textContent += "\n" + msg;
+      if (!logIniciado) { el.textContent = VERSAO_LOG + "\n"; logIniciado = true; }
+  el.textContent += "\n" + msg;
       console.log(msg);
     }
 
