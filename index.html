@@ -5,87 +5,142 @@
     <meta charset="UTF-8" />
     <title>Galeria de Bonsais</title>
     <style>
-        body { font-family: sans-serif; background: #fff; color: #000; margin: 20px; }
-        body.dark { background: #111; color: #ddd; }
-        h1 { color: darkgreen; }
-        select, input[type="text"] { margin: 5px; padding: 5px; }
-        #log { color: red; margin-top: 15px; }
-        .image-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        .image-container div { text-align: center; }
-        .image-container img { max-height: 200px; cursor: pointer; border: 2px solid #ccc; border-radius: 8px; }
-        #darkToggle { position: absolute; top: 10px; right: 10px; }
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            color: darkgreen;
+        }
+        select, input[type="text"] {
+            margin-top: 10px;
+            padding: 5px;
+        }
+        #log {
+            margin-top: 20px;
+            color: red;
+            white-space: pre-wrap;
+        }
+        .galeria {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .imagem-container {
+            text-align: center;
+        }
+        .imagem-container img {
+            max-width: 200px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <button id="darkToggle">🌙</button>
     <h1>Galeria de Bonsais</h1>
-    <label>Categoria:
-        <select id="categoriaSelect">
-            <option value="">Selecionar categoria</option>
-        </select>
-    </label>
-    <label>Espécie:
-        <input type="text" id="searchInput" placeholder="Pesquisar espécie..." />
-        <select id="especieSelect">
-            <option value="">Selecionar espécie</option>
-        </select>
-    </label>
-    <label>Estilo:
-        <select id="estiloSelect">
-            <option value="">Todos</option>
-        </select>
-    </label>
-    <div id="log">logs (v2.06e):</div>
-    <div class="image-container" id="galeria"></div>
+    <label for="categoria">Categoria:</label>
+    <select id="categoria">
+        <option>Selecionar categoria</option>
+    </select>
+
+    <label for="especie">Espécie:</label>
+    <input type="text" id="pesquisarEspecie" placeholder="Pesquisar espécie..." />
+    <select id="especie">
+        <option>Selecionar espécie</option>
+    </select>
+
+    <label for="estilo">Estilo:</label>
+    <select id="estilo">
+        <option>Todos</option>
+    </select>
+
+    <div id="galeria" class="galeria"></div>
+    <div id="log">logs (v2.06g):</div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            log("JS carregado e DOM pronto.");
-            carregarCategorias();
-        });
-
-        const log = (msg) => {
-            const logDiv = document.getElementById("log");
-            logDiv.innerHTML += "<br>" + msg;
-        };
-
-        const carregarCategorias = () => {
-            log("Iniciando carregamento de categorias...");
-            const categorias = ["Coniferas", "Caducifolias", "Frutiferas", "Floriferas", "Perenifolias"];
-            const select = document.getElementById("categoriaSelect");
-            categorias.forEach(cat => {
-                const opt = document.createElement("option");
-                opt.value = cat;
-                opt.textContent = cat;
-                select.appendChild(opt);
-            });
-            log("Categorias carregadas.");
-        };
-
-        document.getElementById("darkToggle").addEventListener("click", () => {
-            document.body.classList.toggle("dark");
-        });
-
-        document.getElementById("categoriaSelect").addEventListener("change", (e) => {
-            const cat = e.target.value;
-            const galeria = document.getElementById("galeria");
-            galeria.innerHTML = "";
-            if (cat === "") return;
-            log("Categoria selecionada: " + cat);
-            carregarImagensCategoria(cat);
-        });
-
-        function carregarImagensCategoria(categoria) {
-            log("Carregando imagens da categoria: " + categoria);
-            const galeria = document.getElementById("galeria");
-            for (let i = 1; i <= 4; i++) {
-                const div = document.createElement("div");
-                const img = document.createElement("img");
-                img.src = "https://via.placeholder.com/150?text=" + encodeURIComponent(categoria + " #" + i);
-                div.appendChild(img);
-                galeria.appendChild(div);
+        document.addEventListener("DOMContentLoaded", async function () {
+            const log = document.getElementById("log");
+            function registrar(msg) {
+                console.log(msg);
+                log.innerText += "\n" + msg;
             }
-        }
+
+            registrar("JS carregado e DOM pronto.");
+
+            const categorias = ["Coniferas", "Caducifolias", "Perenifolias", "Frutiferas"];
+            const especiesPorCategoria = {
+                "Coniferas": ["Pinus sylvestris"],
+                "Caducifolias": ["Acer palmatum"],
+                "Perenifolias": ["Ficus retusa"],
+                "Frutiferas": ["Malus domestica"]
+            };
+            const imagensPorEspecie = {
+                "Pinus sylvestris": [
+                    "https://bonsaiempire.com/images/tree-species/pine/pinus-sylvestris.jpg"
+                ],
+                "Acer palmatum": [
+                    "https://bonsaiempire.com/images/tree-species/maple/japanese-maple.jpg"
+                ],
+                "Ficus retusa": [
+                    "https://bonsaiempire.com/images/tree-species/ficus/ficus-retusa.jpg"
+                ],
+                "Malus domestica": [
+                    "https://bonsaiempire.com/images/tree-species/apple/apple-bonsai.jpg"
+                ]
+            };
+            const estilosPorEspecie = {
+                "Pinus sylvestris": "Informal",
+                "Acer palmatum": "Chokan",
+                "Ficus retusa": "Moyogi",
+                "Malus domestica": "Shakan"
+            };
+
+            const selCategoria = document.getElementById("categoria");
+            const selEspecie = document.getElementById("especie");
+            const selEstilo = document.getElementById("estilo");
+            const galeria = document.getElementById("galeria");
+
+            function preencherDropdown(dropdown, opcoes, defaultText) {
+                dropdown.innerHTML = `<option>${defaultText}</option>`;
+                opcoes.forEach(op => {
+                    const opt = document.createElement("option");
+                    opt.textContent = op;
+                    dropdown.appendChild(opt);
+                });
+            }
+
+            function mostrarImagens(especie) {
+                galeria.innerHTML = "";
+                const imagens = imagensPorEspecie[especie] || [];
+                imagens.forEach((src, idx) => {
+                    const div = document.createElement("div");
+                    div.className = "imagem-container";
+                    div.innerHTML = `<img src="${src}" alt="${especie}" /><div>#${idx + 1}<br>${especie} (${estilosPorEspecie[especie]})</div>`;
+                    galeria.appendChild(div);
+                });
+            }
+
+            preencherDropdown(selCategoria, categorias, "Selecionar categoria");
+
+            selCategoria.addEventListener("change", function () {
+                const cat = this.value;
+                if (especiesPorCategoria[cat]) {
+                    preencherDropdown(selEspecie, especiesPorCategoria[cat], "Selecionar espécie");
+                    registrar(`Categoria selecionada: ${cat}`);
+                    galeria.innerHTML = "";
+                }
+            });
+
+            selEspecie.addEventListener("change", function () {
+                const esp = this.value;
+                if (esp && imagensPorEspecie[esp]) {
+                    mostrarImagens(esp);
+                    registrar(`Espécie selecionada: ${esp}`);
+                }
+            });
+
+            registrar("Inicialização completa.");
+        });
     </script>
 </body>
 </html>
