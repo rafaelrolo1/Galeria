@@ -41,7 +41,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v1.15):</div>
+<div id="log">logs (v1.16):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -52,7 +52,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v1.15):";
+  const VERSAO_LOG = "logs (v1.16):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -206,6 +206,10 @@ function mostrarImagemFullscreen(src) {
   fs.src = src;
   fs.style.display = "block";
 }
+
+document.getElementById("fullscreenImage").addEventListener("click", () => {
+  document.getElementById("fullscreenImage").style.display = "none";
+});
 </script>
 <img class="fullscreen-img" id="fullscreenImage"/></body>
 </html>
