@@ -135,7 +135,7 @@
       const dados = await fetchSheetRange(esp, "A2:C200");
       const estilos = new Set(), imagens = [];
       dados.forEach(row => {
-        const [_, est, img] = row;
+        const [est, img] = row;
         if (est) estilos.add(est);
         if (img) imagens.push({ estilo: est, imagem: img });
       });
