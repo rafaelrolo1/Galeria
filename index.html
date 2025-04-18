@@ -14,19 +14,7 @@
     .galeria div { text-align: center; }
     .galeria img { width: 200px; height: auto; border-radius: 10px; }
     select.auto-selected { background-color: #d1fadf; border-color: green; }
-  
-.fullscreen-img {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;
-  background-color: rgba(0, 0, 0, 0.95);
-  z-index: 1000;
-  display: none;
-  cursor: zoom-out;
-}
-</style>
+  </style>
 </head>
 <body>
 <h1>Galeria de Bonsais</h1>
@@ -41,7 +29,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v1.13):</div>
+<div id="log">logs (v1.10):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -52,7 +40,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v1.13):";
+  const VERSAO_LOG = "logs (v1.10):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -81,7 +69,6 @@
   }
 
   async function carregarCategorias() {
-  log("Iniciando carregarCategorias()..."); console.log("DEBUG: carregarCategorias iniciado");
     const categorias = await fetchSheetRange("Categoria", "A1:A100");
     categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
     categorias.forEach(([cat]) => {
@@ -93,7 +80,6 @@
   }
 
   async function mapearEspeciesCategorias() {
-  log("Iniciando mapearEspeciesCategorias()..."); console.log("DEBUG: mapearEspeciesCategorias iniciado");
     const categorias = await fetchSheetRange("Categoria", "A1:A100");
     let todas = [];
     for (const [cat] of categorias) {
@@ -182,7 +168,7 @@
       label.textContent = "#" + img.linha;
       label.style.fontSize = "14px";
       label.style.color = "#555";
-      im.onclick = () => mostrarImagemFullscreen(img.imagem);
+      im.onclick = async () => {
         filtrosPendentes.estilo = img.estilo;
         especieSelect.value = especieSelect.value;
         especieSelect.dispatchEvent(new Event("change"));
@@ -194,20 +180,9 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-  log("Evento DOMContentLoaded capturado."); console.log("DEBUG: DOMContentLoaded");
     await carregarCategorias();
     await mapearEspeciesCategorias();
   });
-
-document.getElementById("fullscreenImage").addEventListener("click", () => {
-  document.getElementById("fullscreenImage").style.display = "none";
-});
-
-function mostrarImagemFullscreen(src) {
-  const fs = document.getElementById("fullscreenImage");
-  fs.src = src;
-  fs.style.display = "block";
-}
 </script>
-<img class="fullscreen-img" id="fullscreenImage"/></body>
+</body>
 </html>
