@@ -53,7 +53,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.05):</div>
+<div id="log">logs (v2.06b):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -64,7 +64,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v2.05):";
+  const VERSAO_LOG = "logs (v2.06b):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -133,6 +133,8 @@
   });
 
   categoriaSelect.addEventListener("change", async () => {
+    const cat = categoriaSelect.value;
+    if (cat) await carregarImagensDaCategoria(cat);
     const cat = categoriaSelect.value.trim();
     especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
     galeria.innerHTML = "";
