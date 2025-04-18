@@ -53,7 +53,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.06):</div>
+<div id="log">logs (v2.06a):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -64,7 +64,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v2.06):";
+  const VERSAO_LOG = "logs (v2.06a):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -109,6 +109,7 @@
     for (const [cat] of categorias) {
       try {
         const especies = await fetchSheetRange(cat, "A1:A100");
+    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
         especies.forEach(([esp]) => {
           todas.push(esp);
           especieParaCategoria[esp] = cat;
@@ -140,6 +141,7 @@ categoriaSelect.addEventListener("change", async () => {
     if (!cat) return await mapearEspeciesCategorias();
 
     const especies = await fetchSheetRange(cat, "A1:A100");
+    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
     especies.forEach(([esp]) => {
       const opt = document.createElement("option");
       opt.value = esp;
@@ -148,12 +150,14 @@ categoriaSelect.addEventListener("change", async () => {
     });
 
     for (const [esp] of especies) {
+      log('Carregando espécie: ' + esp);
       if (!esp) continue;
       const dados = await fetchSheetRange(esp, "A2:B200");
       dados.forEach((row, idx) => {
         const est = row[0] || "";
         const img = row[1] || "";
         if (img) {
+            log('Imagem carregada para ' + esp + ': ' + img);
           const div = document.createElement("div");
           const im = document.createElement("img");
           const label = document.createElement("div");
@@ -182,6 +186,7 @@ categoriaSelect.addEventListener("change", async () => {
     galeria.innerHTML = "";
     if (!cat) return await mapearEspeciesCategorias();
     const especies = await fetchSheetRange(cat, "A1:A100");
+    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
     especies.forEach(([esp]) => {
       const opt = document.createElement("option");
       opt.value = esp;
@@ -291,4 +296,3 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <img class="fullscreen-img" id="fullscreenImage"/><button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button><button id="btnTop" style="position:fixed;bottom:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;display:none;">↑ Topo</button></body>
 </html>
-
