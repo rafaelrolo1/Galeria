@@ -61,7 +61,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.02):</div>
+<div id="log">logs (v2.03):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -72,7 +72,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v2.02):";
+  const VERSAO_LOG = "logs (v2.03):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -171,7 +171,7 @@
       const est = row[0] || "";
       const img = row[1] || "";
       if (est) estilos.add(est);
-      if (img) imagens.push({ estilo: est, imagem: img, linha: idx + 2 });
+      if (img && img.startsWith("http")) imagens.push({ estilo: est, imagem: img, linha: idx + 2 });
     });
 
     if (estilos.size === 1) {
