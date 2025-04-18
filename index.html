@@ -53,7 +53,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.09):</div>
+<div id="log">logs (v2.10):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -64,7 +64,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v2.09):";
+  const VERSAO_LOG = "logs (v2.10):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -138,14 +138,13 @@ async function mostrarImagensDaCategoria(cat) {
   galeria.innerHTML = "";
   estiloSelect.innerHTML = '<option value="">Todos</option>';
   estiloSelect.classList.remove("auto-selected");
-  filtrosPendentes.estilo = estiloSelect.value;
 
   try {
     await mostrarImagensDaCategoria(cat);
     const especies = await fetchSheetRange(cat, "A1:A100");
     for (const [esp] of especies) {
       if (!esp || esp.trim() === "") continue;
-      await new Promise(r => setTimeout(r, 200)); // anti-spam
+      await new Promise(r => setTimeout(r, 250));
       const dados = await fetchSheetRange(esp, "A2:B200");
       dados.forEach((row, idx) => {
         const est = row[0] || "";
@@ -178,9 +177,6 @@ async function mostrarImagensDaCategoria(cat) {
 }
 
 categoriaSelect.addEventListener("change", async () => {
-    if (!categoriaSelect.value) return;
-    especieSelect.value = '';
-    especieInput.value = '';
     const cat = categoriaSelect.value.trim();
     especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
     galeria.innerHTML = "";
