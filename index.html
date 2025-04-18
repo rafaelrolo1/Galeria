@@ -5,11 +5,11 @@
     <meta charset="UTF-8" />
     <title>Galeria de Bonsais</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #fdfdfd; }
+        body { font-family: sans-serif; padding: 20px; }
         h1 { color: darkgreen; }
         select, input[type="text"] { margin-top: 10px; padding: 5px; }
         #log { margin-top: 20px; color: red; white-space: pre-wrap; }
-        #galeria img { max-height: 200px; margin: 10px; display: inline-block; }
+        #galeria img { height: 200px; margin: 5px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -25,86 +25,98 @@
     <select id="estilo"><option>Todos</option></select>
 
     <div id="galeria"></div>
-    <div id="log" style="color:red;">logs (v2.06i):</div>
+    <div id="log" style="color:red;">logs (v2.06j):</div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            log("JS carregado e DOM pronto.");
+        const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
+        const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
 
-            const categorias = {
-                "Coniferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1843801978&single=true&output=csv",
-                "Caducifolias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=201209602&single=true&output=csv",
-                "Perenifolias": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=80791632&single=true&output=csv",
-                "Frutiferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1484284661&single=true&output=csv",
-                "Floriferas": "https://docs.google.com/spreadsheets/d/e/2PACX-1vStQSVHrXRProUQe8Gsza--qC9Zod1qYnHRB8relEGkJ8pgyv850AGcmRAgFvrNsKQ3hEdNt0tknMUr/pub?gid=1968818289&single=true&output=csv"
-            };
+        const categoriaSelect = document.getElementById("categoria");
+        const especieSelect = document.getElementById("especie");
+        const estiloSelect = document.getElementById("estilo");
+        const galeriaDiv = document.getElementById("galeria");
+        const logDiv = document.getElementById("log");
 
-            const categoriaSelect = document.getElementById("categoria");
-            const especieSelect = document.getElementById("especie");
-            const galeria = document.getElementById("galeria");
+        const categorias = ["Coniferas", "Caducifolias", "Perenifolias", "Frutiferas", "Floriferas"];
+        const estiloLista = new Set();
 
-            function log(mensagem) {
-                console.log(mensagem);
-                document.getElementById("log").innerText += "\n" + mensagem;
-            }
+        function log(msg) {
+            console.log(msg);
+            logDiv.textContent += "\n" + msg;
+        }
 
-            function limparGaleria() {
-                galeria.innerHTML = "";
-            }
-
-            function limparDropdownEspecies() {
-                especieSelect.innerHTML = '<option>Selecionar espécie</option>';
-            }
-
-            async function carregarCSV(url) {
-                const resposta = await fetch(url);
-                const texto = await resposta.text();
-                return texto.split('\n').map(linha => linha.split(',')).filter(l => l[0] && l[1]);
-            }
-
-            async function carregarCategorias() {
-                for (let cat in categorias) {
-                    let opt = document.createElement("option");
-                    opt.value = cat;
-                    opt.textContent = cat;
-                    categoriaSelect.appendChild(opt);
-                }
-                log("Categorias carregadas.");
-            }
-
-            async function carregarEspeciesECriarGaleria(categoria) {
-                limparGaleria();
-                limparDropdownEspecies();
-                if (!categoria || !categorias[categoria]) return;
-
-                try {
-                    log("A carregar dados da categoria: " + categoria);
-                    const linhas = await carregarCSV(categorias[categoria]);
-                    linhas.forEach((linha, idx) => {
-                        const [estilo, url] = linha;
-                        if (!url) return;
-
-                        let opt = document.createElement("option");
-                        opt.value = "esp" + idx;
-                        opt.textContent = `#${idx + 1}`;
-                        especieSelect.appendChild(opt);
-
-                        let img = document.createElement("img");
-                        img.src = url;
-                        img.alt = estilo || "bonsai";
-                        galeria.appendChild(img);
-                    });
-                    log("Imagens e espécies carregadas para " + categoria);
-                } catch (e) {
-                    log("Erro ao carregar: " + e.message);
-                }
-            }
-
-            categoriaSelect.addEventListener("change", () => {
-                const cat = categoriaSelect.value;
-                carregarEspeciesECriarGaleria(cat);
+        async function carregarCategorias() {
+            log("Carregando categorias...");
+            categorias.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c;
+                opt.textContent = c;
+                categoriaSelect.appendChild(opt);
             });
+            log("Categorias carregadas.");
+        }
 
+        async function carregarDadosCategoria(categoria) {
+            log("A carregar dados da categoria: " + categoria);
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${categoria}!A1:B100?key=${apiKey}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Erro HTTP " + response.status);
+                const data = await response.json();
+                const linhas = data.values.slice(1);
+
+                especieSelect.innerHTML = '<option>Selecionar espécie</option>';
+                galeriaDiv.innerHTML = '';
+                estiloLista.clear();
+
+                linhas.forEach((linha, i) => {
+                    const estilo = linha[0] || "Desconhecido";
+                    const link = linha[1];
+                    const nome = `${categoria} #${i + 1}`;
+
+                    const opt = document.createElement("option");
+                    opt.value = link;
+                    opt.textContent = nome;
+                    especieSelect.appendChild(opt);
+
+                    estiloLista.add(estilo);
+                });
+
+                estiloSelect.innerHTML = '<option>Todos</option>';
+                estiloLista.forEach(est => {
+                    const opt = document.createElement("option");
+                    opt.value = est;
+                    opt.textContent = est;
+                    estiloSelect.appendChild(opt);
+                });
+
+                log("Espécies carregadas para: " + categoria);
+            } catch (error) {
+                log("Erro ao carregar: " + error.message);
+            }
+        }
+
+        function mostrarImagemSelecionada() {
+            const link = especieSelect.value;
+            galeriaDiv.innerHTML = '';
+            if (link.startsWith("http")) {
+                const img = document.createElement("img");
+                img.src = link;
+                galeriaDiv.appendChild(img);
+            }
+        }
+
+        categoriaSelect.addEventListener("change", e => {
+            const categoria = e.target.value;
+            if (categoria !== "Selecionar categoria") {
+                carregarDadosCategoria(categoria);
+            }
+        });
+
+        especieSelect.addEventListener("change", mostrarImagemSelecionada);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            log("JS carregado e DOM pronto.");
             carregarCategorias();
         });
     </script>
