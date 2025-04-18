@@ -3,93 +3,97 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>Galeria de Bonsais</title>
+  <title>Galeria de Bonsais - v2.06-final5 CORRIGIDA</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f5f5f5; }
-    select { margin: 10px; padding: 5px; }
-    #galeria img { height: 200px; margin: 5px; }
-    #log { color: red; margin-top: 20px; white-space: pre-wrap; }
+    body { font-family: Arial; background: #f9f9f9; padding: 20px; }
+    h1 { color: darkgreen; }
+    #log { color: red; margin-top: 20px; white-space: pre-line; }
+    .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .galeria img { max-width: 200px; border-radius: 8px; }
   </style>
 </head>
 <body>
   <h1>Galeria de Bonsais</h1>
-
   <label for="categoria">Categoria:</label>
-  <select id="categoria">
-    <option value="">Selecionar categoria</option>
-  </select>
+  <select id="categoria"></select>
 
-  <div id="galeria"></div>
-  <div id="log">logs (v2.06-final4):</div>
+  <div class="galeria" id="galeria"></div>
+  <div id="log">logs (v2.06-final5):</div>
 
   <script>
-    const categoriaSelect = document.getElementById("categoria");
-    const galeria = document.getElementById("galeria");
-    const logDiv = document.getElementById("log");
-
-    const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
+    const spreadsheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
     const categorias = {
-      "Coniferas": "1843801978",
-      "Caducifolias": "201209602",
-      "Perenifolias": "80791632",
-      "Frutiferas": "1484284661",
-      "Floriferas": "1968818289"
+      "Coníferas": "0",
+      "Caducifólias": "201209602",
+      "Perenifólias": "80791632",
+      "Frutíferas": "1484284661",
+      "Floríferas": "1968818289"
     };
 
-    function log(msg) {
-      console.log(msg);
-      logDiv.textContent += "\n" + msg;
-    }
+    const categoriaSelect = document.getElementById("categoria");
+    const galeria = document.getElementById("galeria");
+    const log = document.getElementById("log");
 
-    async function fetchSheetValues(sheetName, range) {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!${range}?key=${apiKey}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Erro: " + res.status);
-      const data = await res.json();
-      return data.values || [];
-    }
-
-    async function carregarImagensDaCategoria(cat) {
-      galeria.innerHTML = "";
-      log(`Carregando categoria: ${cat}`);
-
-      const especies = await fetchSheetValues(cat, "A2:A100");
-      log(`${especies.length} espécies encontradas.`);
-
-      for (const [nomeEspecie] of especies) {
-        if (!nomeEspecie) continue;
-        log(`Carregando espécie: ${nomeEspecie}`);
-        try {
-          const dados = await fetchSheetValues(nomeEspecie, "A2:B100");
-          for (const [estilo, link] of dados) {
-            if (link && link.startsWith("http")) {
-              const img = document.createElement("img");
-              img.src = link.trim();
-              img.title = `${nomeEspecie} (${estilo})`;
-              galeria.appendChild(img);
-            }
-          }
-        } catch (err) {
-          log(`Erro ao carregar ${nomeEspecie}: ${err.message}`);
-        }
-      }
-
-      log("Imagens carregadas.");
-    }
-
-    categoriaSelect.addEventListener("change", async () => {
-      const cat = categoriaSelect.value;
-      if (cat) await carregarImagensDaCategoria(cat);
+    document.addEventListener("DOMContentLoaded", () => {
+      logMessage("JS carregado e DOM pronto.");
+      carregarCategorias();
     });
 
-    // Carrega dropdown
-    for (const cat in categorias) {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      categoriaSelect.appendChild(opt);
+    function logMessage(msg) {
+      console.log(msg);
+      log.innerText += "\n" + msg;
+    }
+
+    function carregarCategorias() {
+      logMessage("Carregando categorias...");
+      for (const categoria in categorias) {
+        const option = document.createElement("option");
+        option.value = categoria;
+        option.textContent = categoria;
+        categoriaSelect.appendChild(option);
+      }
+      categoriaSelect.addEventListener("change", handleCategoriaChange);
+      logMessage("Categorias carregadas.");
+    }
+
+    async function handleCategoriaChange() {
+      const categoria = categoriaSelect.value;
+      galeria.innerHTML = "";
+      logMessage("Carregando categoria: " + categoria);
+      const gid = categorias[categoria];
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/'${categoria}'!A1:A100?key=${apiKey}`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const especies = data.values.map(row => row[0]).filter(Boolean);
+        logMessage(`${especies.length} espécies encontradas.`);
+        for (const especie of especies) {
+          await carregarImagensDaEspecie(especie);
+        }
+        logMessage("Imagens carregadas.");
+      } catch (error) {
+        logMessage("Erro ao carregar categoria: " + error);
+      }
+    }
+
+    async function carregarImagensDaEspecie(especie) {
+      logMessage("Carregando espécie: " + especie);
+      try {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/'${especie}'!A1:A100?key=${apiKey}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const imagens = (data.values || []).map(row => row[1]).filter(Boolean);
+        imagens.forEach(src => {
+          const img = document.createElement("img");
+          img.src = src;
+          galeria.appendChild(img);
+        });
+      } catch (error) {
+        logMessage(`Erro ao carregar ${especie}: ${error}`);
+      }
     }
   </script>
 </body>
