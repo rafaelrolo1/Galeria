@@ -61,7 +61,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v1.01):</div>
+<div id="log">logs (v2.02):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -72,7 +72,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v1.01):";
+  const VERSAO_LOG = "logs (v2.02):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -156,6 +156,7 @@
 
   especieSelect.addEventListener("change", async () => {
     const esp = especieSelect.value.trim();
+      const especie = esp; // manter disponível para legenda
     galeria.innerHTML = "";
     estiloSelect.innerHTML = '<option value="">Todos</option>';
     estiloSelect.classList.remove("auto-selected");
@@ -200,7 +201,7 @@
       label.textContent = "#" + img.linha;
         const legenda = document.createElement("div");
         legenda.className = "legenda";
-        legenda.textContent = esp + " • " + img.estilo;
+        legenda.textContent = especie + " • " + img.estilo;
       label.style.fontSize = "14px";
       label.style.color = "#555";
       im.onclick = async () => {
@@ -238,19 +239,24 @@ function mostrarImagemFullscreen(src) {
   fs.style.display = "block";
 }
 
-// Dark Mode toggle
-document.getElementById("btnDarkMode").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-});
+document.addEventListener("DOMContentLoaded", () => {
+  const darkBtn = document.getElementById("btnDarkMode");
+  if (darkBtn) {
+    darkBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
+  }
 
-// Scroll Top button
-const btnTop = document.getElementById("btnTop");
-window.addEventListener("scroll", () => {
-  btnTop.style.display = window.scrollY > 300 ? "block" : "none";
-});
-btnTop.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const btnTop = document.getElementById("btnTop");
+  if (btnTop) {
+    window.addEventListener("scroll", () => {
+      btnTop.style.display = window.scrollY > 300 ? "block" : "none";
+    });
+    btnTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 });
 </script>
-<img class="fullscreen-img" id="fullscreenImage"/><button id="btnDarkMode" style="position:fixed;bottom:20px;left:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button><button id="btnTop" style="position:fixed;bottom:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;display:none;">↑ Topo</button></body>
+<img class="fullscreen-img" id="fullscreenImage"/><button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button><button id="btnTop" style="position:fixed;bottom:20px;right:20px;z-index:1001;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;display:none;">↑ Topo</button></body>
 </html>
