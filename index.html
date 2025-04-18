@@ -53,8 +53,35 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.06c):</div>
+<div id="log">logs (v2.06d):</div>
 <script>
+log("Script JS carregado com sucesso [v2.06d]");
+console.log("JS carregado [v2.06d]");
+alert("JS carregado [v2.06d]");
+
+if (!categoriaSelect) {
+    log("Elemento categoriaSelect não encontrado.");
+    console.error("categoriaSelect não encontrado.");
+} else {
+    console.log("categoriaSelect encontrado, aplicando listener...");
+    categoriaSelect.addEventListener("change", async () => {
+        const cat = categoriaSelect.value;
+        log("Categoria selecionada: " + cat);
+        if (cat) {
+            log("Chamada de carregarImagensDaCategoria(" + cat + ")");
+            try {
+                await carregarImagensDaCategoria(cat);
+                log("Imagens carregadas para a categoria: " + cat);
+            } catch (e) {
+                log("Erro ao carregar imagens da categoria '" + cat + "': " + e);
+                console.error("Erro ao carregar imagens da categoria:", e);
+            }
+        } else {
+            log("Nenhuma categoria selecionada.");
+        }
+    });
+}
+
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
 
@@ -132,20 +159,8 @@
     });
   });
 
-  categoriaSelect.addEventListener("change", async () => {
-    const cat = categoriaSelect.value;
-    log("Categoria selecionada: " + cat);
-    if (cat) {
-        log("Chamada de carregarImagensDaCategoria(" + cat + ")");
-        try {
-            await carregarImagensDaCategoria(cat);
-            log("Imagens carregadas para a categoria: " + cat);
-        } catch (e) {
-            log("Erro ao carregar imagens da categoria '" + cat + "': " + e);
-        }
-    } else {
-        log("Nenhuma categoria selecionada.");
-    }
+  // [v2.06d] substituído por bloco debug completo acima
+//
     const cat = categoriaSelect.value.trim();
     especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
     galeria.innerHTML = "";
