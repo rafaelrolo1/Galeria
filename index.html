@@ -53,7 +53,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.06a):</div>
+<div id="log">logs (v2.05):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -64,7 +64,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v2.06a):";
+  const VERSAO_LOG = "logs (v2.05):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -109,7 +109,6 @@
     for (const [cat] of categorias) {
       try {
         const especies = await fetchSheetRange(cat, "A1:A100");
-    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
         especies.forEach(([esp]) => {
           todas.push(esp);
           especieParaCategoria[esp] = cat;
@@ -133,60 +132,12 @@
     });
   });
 
-  
-categoriaSelect.addEventListener("change", async () => {
-    const cat = categoriaSelect.value.trim();
-    especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-    galeria.innerHTML = "";
-    if (!cat) return await mapearEspeciesCategorias();
-
-    const especies = await fetchSheetRange(cat, "A1:A100");
-    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
-    especies.forEach(([esp]) => {
-      const opt = document.createElement("option");
-      opt.value = esp;
-      opt.textContent = esp;
-      especieSelect.appendChild(opt);
-    });
-
-    for (const [esp] of especies) {
-      log('Carregando espécie: ' + esp);
-      if (!esp) continue;
-      const dados = await fetchSheetRange(esp, "A2:B200");
-      dados.forEach((row, idx) => {
-        const est = row[0] || "";
-        const img = row[1] || "";
-        if (img) {
-            log('Imagem carregada para ' + esp + ': ' + img);
-          const div = document.createElement("div");
-          const im = document.createElement("img");
-          const label = document.createElement("div");
-          const legenda = document.createElement("div");
-          im.src = img;
-          im.title = "Estilo: " + est;
-          label.textContent = "#" + (idx + 2);
-          legenda.className = "legenda";
-          legenda.textContent = esp + " • " + est;
-          im.onclick = () => {
-            especieSelect.value = esp;
-            especieSelect.dispatchEvent(new Event("change"));
-            mostrarImagemFullscreen(img);
-          };
-          div.appendChild(im);
-          div.appendChild(label);
-          div.appendChild(legenda);
-          galeria.appendChild(div);
-        }
-      });
-    }
-});
-
+  categoriaSelect.addEventListener("change", async () => {
     const cat = categoriaSelect.value.trim();
     especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
     galeria.innerHTML = "";
     if (!cat) return await mapearEspeciesCategorias();
     const especies = await fetchSheetRange(cat, "A1:A100");
-    log('Categoria selecionada: ' + cat + ' (' + especies.length + ' espécies)');
     especies.forEach(([esp]) => {
       const opt = document.createElement("option");
       opt.value = esp;
