@@ -14,7 +14,19 @@
     .galeria div { text-align: center; }
     .galeria img { width: 200px; height: auto; border-radius: 10px; }
     select.auto-selected { background-color: #d1fadf; border-color: green; }
-  </style>
+  
+.fullscreen-img {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  display: none;
+  cursor: zoom-out;
+}
+</style>
 </head>
 <body>
 <h1>Galeria de Bonsais</h1>
@@ -168,7 +180,7 @@
       label.textContent = "#" + img.linha;
       label.style.fontSize = "14px";
       label.style.color = "#555";
-      im.onclick = async () => {
+      im.onclick = () => mostrarImagemFullscreen(img.imagem);
         filtrosPendentes.estilo = img.estilo;
         especieSelect.value = especieSelect.value;
         especieSelect.dispatchEvent(new Event("change"));
@@ -183,6 +195,16 @@
     await carregarCategorias();
     await mapearEspeciesCategorias();
   });
+
+document.getElementById("fullscreenImage").addEventListener("click", () => {
+  document.getElementById("fullscreenImage").style.display = "none";
+});
+
+function mostrarImagemFullscreen(src) {
+  const fs = document.getElementById("fullscreenImage");
+  fs.src = src;
+  fs.style.display = "block";
+}
 </script>
-</body>
+<img class="fullscreen-img" id="fullscreenImage"/></body>
 </html>
