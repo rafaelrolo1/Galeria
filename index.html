@@ -41,7 +41,7 @@
   <select id="estiloSelect"><option value="">Todos</option></select>
 </label>
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v1.16):</div>
+<div id="log">logs (v1.17):</div>
 <script>
   const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
   const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
@@ -52,7 +52,7 @@
   const estiloSelect = document.getElementById("estiloSelect");
   const galeria = document.getElementById("galeria");
 
-  const VERSAO_LOG = "logs (v1.16):";
+  const VERSAO_LOG = "logs (v1.17):";
   let logIniciado = false;
   let filtrosPendentes = { estilo: "" };
   let especieParaCategoria = {};
@@ -203,12 +203,24 @@ document.getElementById("fullscreenImage").addEventListener("click", () => {
 
 function mostrarImagemFullscreen(src) {
   const fs = document.getElementById("fullscreenImage");
+  if (!fs) return;
+  const fs = document.getElementById("fullscreenImage");
   fs.src = src;
   fs.style.display = "block";
 }
 
 document.getElementById("fullscreenImage").addEventListener("click", () => {
   document.getElementById("fullscreenImage").style.display = "none";
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fullscreen = document.getElementById("fullscreenImage");
+  if (fullscreen) {
+    fullscreen.addEventListener("click", () => {
+      fullscreen.style.display = "none";
+      fullscreen.src = "";
+    });
+  }
 });
 </script>
 <img class="fullscreen-img" id="fullscreenImage"/></body>
