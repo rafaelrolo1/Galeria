@@ -2,160 +2,95 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="utf-8"/>
-<title>Galeria de Bonsais</title>
-<style>
-    body { font-family: sans-serif; padding: 20px; }
+  <meta charset="UTF-8">
+  <title>Galeria de Bonsais - v2.07-final</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
     h1 { color: darkgreen; }
     select { margin: 10px; padding: 5px; }
-    #log { margin-top: 20px; color: red; white-space: pre-wrap; }
-    .galeria { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
-    .galeria div { text-align: center; }
-    .galeria img { width: 200px; height: auto; border-radius: 10px; }
-    select.auto-selected { background-color: #d1fadf; border-color: green; }
-.fullscreen-img {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: contain;
-  background-color: rgba(0, 0, 0, 0.95);
-  z-index: 1000;
-  display: none;
-  cursor: zoom-out;
-}
-.dark {
-  background-color: #111;
-  color: #eee;
-}
-.dark select, .dark input {
-  background-color: #333;
-  color: #eee;
-}
-.dark .galeria div {
-  background-color: #222;
-}
-</style>
+    #log { margin-top: 20px; color: red; white-space: pre-line; }
+    .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .galeria img { max-width: 200px; border-radius: 8px; }
+  </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
-  <select id="categoriaSelect"><option value="">Selecionar categoria</option></select>
-</label>
-<label>Espécie:
-  <input id="searchEspecie" placeholder="Pesquisar espécie..." style="margin-left:10px; padding:5px;" type="text"/>
-<select id="especieSelect"><option value="">Selecionar espécie</option></select>
-</label>
-<label>Estilo:
-  <select id="estiloSelect"><option value="">Todos</option></select>
-</label>
-<div class="galeria" id="galeria"></div>
-<div id="log">logs (v2.08):</div>
-<script>
-  const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
-  const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
-  const categoriaSelect = document.getElementById("categoriaSelect");
-  const especieSelect = document.getElementById("especieSelect");
-  const searchInput = document.getElementById("searchEspecie");
-  const estiloSelect = document.getElementById("estiloSelect");
-  const galeria = document.getElementById("galeria");
-  const VERSAO_LOG = "logs (v2.08):";
-  let logIniciado = false;
-  let filtrosPendentes = { estilo: "" };
-  let especieParaCategoria = {};
-  function log(msg) {
-    const el = document.getElementById("log");
-    if (!logIniciado) {
-      if (!el.textContent.includes(VERSAO_LOG)) el.textContent = VERSAO_LOG + "\n";
-      logIniciado = true;
+  <h1>Galeria de Bonsais</h1>
+  <label for="categoria">Categoria:</label>
+  <select id="categoria"><option value="">Selecionar categoria</option></select>
+  <div id="galeria" class="galeria"></div>
+  <div id="log">logs (v2.07-final):</div>
+
+  <script>
+    const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
+    const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
+
+    const categorias = {
+      "Coniferas": "1843801978",
+      "Caducifolias": "201209602",
+      "Perenifolias": "80791632",
+      "Frutiferas": "1484284661",
+      "Floriferas": "1968818289"
+    };
+
+    const categoriaSelect = document.getElementById("categoria");
+    const galeria = document.getElementById("galeria");
+    const log = document.getElementById("log");
+
+    function logMessage(msg) {
+      console.log(msg);
+      log.textContent += "\n" + msg;
     }
-    el.textContent += "\n" + msg;
-    console.log(msg);
-  }
-  async function fetchSheetRange(sheetName, range) {
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${range}?key=${apiKey}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Erro HTTP " + response.status);
-    const data = await response.json();
-    return data.values || [];
-  }
-  function setSelectValue(select, value) {
-    const exists = [...select.options].some(opt => opt.value === value);
-    if (exists) select.value = value;
-  }
-  async function carregarCategorias() {
-    const categorias = await fetchSheetRange("Categoria", "A1:A100");
-    categoriaSelect.innerHTML = '<option value="">Selecionar categoria</option>';
-    categorias.forEach(([cat]) => {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      categoriaSelect.appendChild(opt);
-    });
-  }
-  async function mapearEspeciesCategorias() {
-    const categorias = await fetchSheetRange("Categoria", "A1:A100");
-    let todas = [];
-    for (const [cat] of categorias) {
+
+    async function fetchSheetValues(sheetName, range) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/'${sheetName}'!${range}?key=${apiKey}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Erro: " + res.status);
+      const data = await res.json();
+      return data.values || [];
+    }
+
+    async function carregarImagensDaCategoria(categoria) {
+      galeria.innerHTML = "";
+      logMessage("Carregando categoria: " + categoria);
       try {
-        const especies = await fetchSheetRange(cat, "A1:A100");
-        especies.forEach(([esp]) => {
-          todas.push(esp);
-          especieParaCategoria[esp] = cat;
-        });
-      } catch {}
-    }
-    todas = [...new Set(todas)].sort();
-    especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-    todas.forEach(esp => {
-      const opt = document.createElement("option");
-      opt.value = esp;
-      opt.textContent = esp;
-      especieSelect.appendChild(opt);
-    });
-  }
-  async function carregarTodasImagensDaCategoria(cat) {
-    const especies = await fetchSheetRange(cat, "A1:A100");
-    for (const [esp] of especies) {
-      if (!esp) continue;
-      const dados = await fetchSheetRange(esp, "A2:B200");
-      dados.forEach((row, idx) => {
-        const est = row[0] || "";
-        const img = row[1] || "";
-        if (img) {
-          const div = document.createElement("div");
-          const im = document.createElement("img");
-          const label = document.createElement("div");
-          im.src = img;
-          im.title = "Estilo: " + est;
-          label.textContent = `${esp} - Estilo: ${est}`;
-          label.style.fontSize = "14px";
-          label.style.color = "#555";
-          div.appendChild(im);
-          div.appendChild(label);
-          galeria.appendChild(div);
+        const especies = await fetchSheetValues(categoria, "A1:A100");
+        logMessage(`${especies.length} espécies encontradas.`);
+        for (const [especie] of especies) {
+          if (!especie) continue;
+          logMessage("→ " + especie);
+          try {
+            const imagens = await fetchSheetValues(especie, "A1:B100");
+            imagens.forEach(([estilo, link]) => {
+              if (link && link.startsWith("http")) {
+                const img = document.createElement("img");
+                img.src = link.trim();
+                img.alt = estilo || especie;
+                galeria.appendChild(img);
+              }
+            });
+          } catch (erro) {
+            logMessage(`Erro ao carregar ${especie}: ${erro.message}`);
+          }
         }
-      });
+      } catch (e) {
+        logMessage("Erro na categoria: " + e.message);
+      }
     }
-  }
-  categoriaSelect.addEventListener("change", async () => {
-    const cat = categoriaSelect.value.trim();
-    especieSelect.innerHTML = '<option value="">Selecionar espécie</option>';
-    galeria.innerHTML = "";
-    if (!cat) return await mapearEspeciesCategorias();
-    const especies = await fetchSheetRange(cat, "A1:A100");
-    especies.forEach(([esp]) => {
-      const opt = document.createElement("option");
-      opt.value = esp;
-      opt.textContent = esp;
-      especieSelect.appendChild(opt);
+
+    categoriaSelect.addEventListener("change", () => {
+      const cat = categoriaSelect.value;
+      if (cat) carregarImagensDaCategoria(cat);
     });
-    await carregarTodasImagensDaCategoria(cat);
-  });
-  document.addEventListener("DOMContentLoaded", async () => {
-    await carregarCategorias();
-    await mapearEspeciesCategorias();
-  });
-</script>
-<img class="fullscreen-img" id="fullscreenImage"/><button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button><button id="btnTop" style="position:fixed;bottom:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;display:none;">↑ Topo</button></body>
+
+    document.addEventListener("DOMContentLoaded", () => {
+      logMessage("JS carregado e DOM pronto.");
+      for (const nome in categorias) {
+        const opt = document.createElement("option");
+        opt.value = nome;
+        opt.textContent = nome;
+        categoriaSelect.appendChild(opt);
+      }
+    });
+  </script>
+</body>
 </html>
