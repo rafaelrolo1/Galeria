@@ -59,7 +59,7 @@
           if (!especie) continue;
           logMessage("→ " + especie);
           try {
-            const imagens = await fetchSheetValues(especie, "A1:A100");
+            const imagens = await fetchSheetValues(especie, "B1:B100");
             imagens.forEach(([estilo, link]) => {
               if (link && link.startsWith("http")) {
                 const img = document.createElement("img");
