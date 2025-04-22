@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8"/>
   <title>Galeria de Bonsais</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
@@ -11,159 +11,139 @@
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
     .galeria { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }
     .galeria div { text-align: center; }
-    .galeria img { width: 200px; height: auto; border-radius: 10px; cursor: pointer; }
-    select.auto-selected { background-color: #d1fadf; border-color: green; }
+    .galeria img { width: 200px; height: auto; border-radius: 10px; }
     .fullscreen-img {
-      position: fixed; top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      object-fit: contain;
-      background-color: rgba(0, 0, 0, 0.95);
-      z-index: 1000;
-      display: none;
-      cursor: zoom-out;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      object-fit: contain; background-color: rgba(0, 0, 0, 0.95);
+      z-index: 1000; display: none; cursor: zoom-out;
     }
-    .dark {
-      background-color: #111;
-      color: #eee;
-    }
-    .dark select, .dark input {
-      background-color: #333;
-      color: #eee;
-    }
-    .dark .galeria div {
-      background-color: #222;
-    }
+    .dark { background-color: #111; color: #eee; }
+    .dark select, .dark input { background-color: #333; color: #eee; }
   </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
-  <select id="categoriaSelect"><option value="">Todas</option></select>
-</label>
-<label>Espécie:
-  <select id="especieSelect"><option value="">Todas</option></select>
-</label>
-<label>Estilo:
-  <select id="estiloSelect"><option value="">Todos</option></select>
-</label>
-<div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.10):</div>
-<script>
-const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
-const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
-const folhaDados = "Bonsai_Gallery";
+  <h1>Galeria de Bonsais</h1>
+  <label>Categoria:
+    <select id="categoriaSelect"><option value="">Todas</option></select>
+  </label>
+  <label>Espécie:
+    <select id="especieSelect"><option value="">Todas</option></select>
+  </label>
+  <label>Sub-espécie:
+    <select id="subespecieSelect"><option value="">Todas</option></select>
+  </label>
+  <label>Estilo:
+    <select id="estiloSelect"><option value="">Todos</option></select>
+  </label>
+  <div class="galeria" id="galeria"></div>
+  <div id="log">logs (v3.02):</div>
+  <script>
+    const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
+    const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
+    const range = "Bonsai_Gallery!A2:E1000";
 
-const categoriaSelect = document.getElementById("categoriaSelect");
-const especieSelect = document.getElementById("especieSelect");
-const estiloSelect = document.getElementById("estiloSelect");
-const galeria = document.getElementById("galeria");
-const logEl = document.getElementById("log");
-const fullscreenImage = document.getElementById("fullscreenImage");
-const btnDarkMode = document.getElementById("btnDarkMode");
+    const categoriaSelect = document.getElementById("categoriaSelect");
+    const especieSelect = document.getElementById("especieSelect");
+    const subespecieSelect = document.getElementById("subespecieSelect");
+    const estiloSelect = document.getElementById("estiloSelect");
+    const galeria = document.getElementById("galeria");
 
-let todosDados = [];
+    let dadosPlanilha = [];
 
-function log(msg) {
-  logEl.textContent += "\n" + msg;
-  console.log(msg);
-}
+    function log(msg) {
+      const el = document.getElementById("log");
+      el.textContent += "\n" + msg;
+      console.log(msg);
+    }
 
-async function fetchDados() {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${folhaDados}!A2:E1000?key=${apiKey}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return (data.values || []).map((row, idx) => ({
-    categoria: row[0] || "",
-    especie: row[1] || "",
-    subespecie: row[2] || "",
-    estilo: row[3] || "",
-    imagem: row[4] || "",
-    linha: idx + 2
-  }));
-}
+    async function carregarDados() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      dadosPlanilha = data.values || [];
+    }
 
-function preencherDropdowns(dados) {
-  const categorias = [...new Set(dados.map(d => d.categoria))].sort();
-  const especies = [...new Set(dados.map(d => d.especie))].sort();
-  const estilos = [...new Set(dados.map(d => d.estilo))].sort();
+    function popularDropdowns() {
+      const categorias = new Set();
+      const especies = new Set();
+      const subespecies = new Set();
+      const estilos = new Set();
 
-  categoriaSelect.innerHTML = '<option value="">Todas</option>';
-  categorias.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    categoriaSelect.appendChild(opt);
-  });
+      dadosPlanilha.forEach(row => {
+        categorias.add(row[0]);
+        especies.add(row[1]);
+        subespecies.add(row[2]);
+        estilos.add(row[3]);
+      });
 
-  especieSelect.innerHTML = '<option value="">Todas</option>';
-  especies.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    especieSelect.appendChild(opt);
-  });
+      function preencher(select, items) {
+        select.innerHTML = `<option value="">Todas</option>`;
+        [...items].sort().forEach(v => {
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          select.appendChild(opt);
+        });
+      }
 
-  estiloSelect.innerHTML = '<option value="">Todos</option>';
-  estilos.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    estiloSelect.appendChild(opt);
-  });
-}
+      preencher(categoriaSelect, categorias);
+      preencher(especieSelect, especies);
+      preencher(subespecieSelect, subespecies);
+      preencher(estiloSelect, estilos);
+    }
 
-function aplicarFiltros() {
-  const cat = categoriaSelect.value;
-  const esp = especieSelect.value;
-  const est = estiloSelect.value;
+    function aplicarFiltros() {
+      const cat = categoriaSelect.value;
+      const esp = especieSelect.value;
+      const sub = subespecieSelect.value;
+      const est = estiloSelect.value;
+      galeria.innerHTML = "";
 
-  const filtrados = todosDados.filter(d =>
-    (!cat || d.categoria === cat) &&
-    (!esp || d.especie === esp) &&
-    (!est || d.estilo === est)
-  );
+      dadosPlanilha.forEach((row, idx) => {
+        const [categoria, especie, subespecie, estilo, link] = row;
+        if ((cat && categoria !== cat) ||
+            (esp && especie !== esp) ||
+            (sub && subespecie !== sub) ||
+            (est && estilo !== est)) return;
 
-  mostrarGaleria(filtrados);
-}
+        if (!link) return;
 
-function mostrarGaleria(dados) {
-  galeria.innerHTML = "";
-  dados.forEach(d => {
-    if (!d.imagem) return;
-    const div = document.createElement("div");
-    const img = document.createElement("img");
-    const legend = document.createElement("div");
-    img.src = d.imagem;
-    img.title = `${d.estilo}`;
-    img.onclick = () => abrirFullscreen(d.imagem);
-    legend.textContent = `${d.especie} - ${d.estilo} - #${d.linha}`;
-    legend.style.fontSize = "14px";
-    legend.style.color = "#555";
-    div.appendChild(img);
-    div.appendChild(legend);
-    galeria.appendChild(div);
-  });
-}
+        const div = document.createElement("div");
+        const img = document.createElement("img");
+        img.src = link;
+        img.alt = `${especie} - ${subespecie}`;
+        img.title = estilo || "";
+        img.onclick = () => {
+          const fs = document.getElementById("fullscreenImage");
+          fs.src = link;
+          fs.style.display = "block";
+        };
+        const caption = document.createElement("div");
+        caption.textContent = `${especie} ${subespecie || ""} - ${estilo}`;
+        caption.style.fontSize = "13px";
+        caption.style.color = "#555";
 
-function abrirFullscreen(src) {
-  fullscreenImage.src = src;
-  fullscreenImage.style.display = "block";
-}
-fullscreenImage.onclick = () => fullscreenImage.style.display = "none";
-btnDarkMode.onclick = () => document.body.classList.toggle("dark");
+        div.appendChild(img);
+        div.appendChild(caption);
+        galeria.appendChild(div);
+      });
+    }
 
-categoriaSelect.onchange = aplicarFiltros;
-especieSelect.onchange = aplicarFiltros;
-estiloSelect.onchange = aplicarFiltros;
+    document.addEventListener("DOMContentLoaded", async () => {
+      await carregarDados();
+      popularDropdowns();
+      aplicarFiltros();
+    });
 
-(async () => {
-  todosDados = await fetchDados();
-  preencherDropdowns(todosDados);
-  aplicarFiltros();
-  log("logs (v3.10): dados carregados com sucesso.");
-})();
-</script>
-<img class="fullscreen-img" id="fullscreenImage" />
-<button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
+    [categoriaSelect, especieSelect, subespecieSelect, estiloSelect].forEach(sel =>
+      sel.addEventListener("change", aplicarFiltros)
+    );
+
+    document.body.addEventListener("click", e => {
+      const fs = document.getElementById("fullscreenImage");
+      if (e.target.id === "fullscreenImage") fs.style.display = "none";
+    });
+  </script>
+  <img id="fullscreenImage" class="fullscreen-img"/>
 </body>
 </html>
