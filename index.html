@@ -1,145 +1,198 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Galeria de Bonsais</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body { font-family: sans-serif; padding: 20px; transition: background 0.3s, color 0.3s; }
     h1 { color: darkgreen; }
-    select { margin: 5px; padding: 5px; }
+    label, select, input, button { margin: 5px; padding: 5px; }
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
+    .formulario { margin-top: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #f8f8f8; }
+    .dark .formulario { background: #222; border-color: #444; }
+    .dark input, .dark select, .dark button { background: #333; color: #eee; border: 1px solid #666; }
+    .dark { background: #111; color: #eee; }
+    .topo { position: fixed; bottom: 20px; right: 20px; }
     .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    .galeria div { text-align: center; }
-    .galeria img { width: 200px; height: auto; border-radius: 8px; cursor: pointer; }
-    .fullscreen-img {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      object-fit: contain; background-color: rgba(0,0,0,0.95);
-      z-index: 1000; display: none; cursor: zoom-out;
-    }
-    .dark { background-color: #111; color: #eee; }
-    .dark select, .dark input { background-color: #333; color: #eee; }
-    .dark .galeria div { background-color: #222; }
+    .galeria img { max-width: 200px; border-radius: 8px; cursor: pointer; }
+    .legenda { text-align: center; font-size: 12px; }
   </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
-  <select id="categoriaSelect"><option value="">Todas</option></select>
-</label>
-<label>Espécie:
-  <select id="especieSelect"><option value="">Todas</option></select>
-</label>
-<label>Sub-espécie:
-  <select id="subespecieSelect"><option value="">Todas</option></select>
-</label>
-<label>Estilo:
-  <select id="estiloSelect"><option value="">Todos</option></select>
-</label>
-<div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.03):</div>
-<img id="fullscreenImage" class="fullscreen-img" />
-<button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
+  <button onclick="document.body.classList.toggle('dark')" style="float:right">🌙</button>
+  <h1>Galeria de Bonsais</h1>
 
-<script>
-const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
-const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
-const range = "Bonsai_Gallery!A2:E500";
+  <label>Categoria:
+    <select id="filtroCategoria" onchange="atualizarFiltros()"></select>
+  </label>
+  <label>Espécie:
+    <select id="filtroEspecie" onchange="filtrarGaleria()"></select>
+  </label>
+  <label>Estilo:
+    <select id="filtroEstilo" onchange="filtrarGaleria()"></select>
+  </label>
 
-const categoriaSelect = document.getElementById("categoriaSelect");
-const especieSelect = document.getElementById("especieSelect");
-const subespecieSelect = document.getElementById("subespecieSelect");
-const estiloSelect = document.getElementById("estiloSelect");
-const galeria = document.getElementById("galeria");
+  <div class="galeria" id="galeria"></div>
+  <div id="log">logs (v3.03):</div>
 
-let dados = [];
+  <div class="formulario">
+    <h3>Adicionar novo bonsai</h3>
+    <label>Categoria:
+      <select id="addCategoria"></select>
+    </label>
+    <label>Espécie:
+      <input id="addEspecie" list="listaEspecies" placeholder="Escolher ou escrever nova"/>
+      <datalist id="listaEspecies"></datalist>
+    </label>
+    <label>Sub-espécie:
+      <input id="addSubEspecie" list="listaSubEspecies" placeholder="(opcional)"/>
+      <datalist id="listaSubEspecies"></datalist>
+    </label>
+    <label>Estilo:
+      <input id="addEstilo" list="listaEstilos" placeholder="Escolher ou escrever novo"/>
+      <datalist id="listaEstilos"></datalist>
+    </label>
+    <label>Link da imagem:
+      <input id="addLink" type="url" placeholder="https://..." style="width:300px"/>
+    </label>
+    <button onclick="submeterFormulario()">Adicionar à Galeria</button>
+    <div id="respostaAPI" style="margin-top:10px;color:green;"></div>
+  </div>
 
-function log(msg) {
-  document.getElementById("log").textContent += "\n" + msg;
-}
+  <button class="topo" onclick="scrollTo(0,0)">🔝</button>
 
-async function fetchDados() {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
-  const res = await fetch(url);
-  const json = await res.json();
-  dados = json.values.map(r => ({
-    categoria: r[0] || "",
-    especie: r[1] || "",
-    subespecie: r[2] || "",
-    estilo: r[3] || "",
-    link: r[4] || ""
-  }));
-  atualizarFiltros();
-  atualizarGaleria();
-}
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec";
+    const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
+    const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
 
-function atualizarFiltros() {
-  const categorias = new Set(), especies = new Set(), subespecies = new Set(), estilos = new Set();
-  const cat = categoriaSelect.value, esp = especieSelect.value;
+    let dadosOriginais = [];
 
-  dados.forEach(d => {
-    if (!cat || d.categoria === cat) categorias.add(d.categoria);
-    if (!cat || d.categoria === cat) especies.add(d.especie);
-    if ((!cat || d.categoria === cat) && (!esp || d.especie === esp)) subespecies.add(d.subespecie);
-    estilos.add(d.estilo);
-  });
-
-  atualizarSelect(categoriaSelect, [...categorias], "Todas");
-  atualizarSelect(especieSelect, [...especies], "Todas");
-  atualizarSelect(subespecieSelect, [...subespecies], "Todas");
-  atualizarSelect(estiloSelect, [...estilos], "Todos");
-}
-
-function atualizarSelect(select, valores, label) {
-  const atual = select.value;
-  select.innerHTML = `<option value="">${label}</option>` + valores.sort().map(v =>
-    `<option value="${v}">${v}</option>`).join("");
-  select.value = atual;
-}
-
-function atualizarGaleria() {
-  const cat = categoriaSelect.value, esp = especieSelect.value;
-  const sub = subespecieSelect.value, est = estiloSelect.value;
-  galeria.innerHTML = "";
-
-  dados.forEach((d, i) => {
-    if ((cat && d.categoria !== cat) || (esp && d.especie !== esp) ||
-        (sub && d.subespecie !== sub) || (est && d.estilo !== est)) return;
-
-    if (d.link) {
-      const div = document.createElement("div");
-      const img = document.createElement("img");
-      const label = document.createElement("div");
-      img.src = d.link;
-      img.onclick = () => abrirFullscreen(d.link);
-      label.textContent = `${d.especie} ${d.subespecie} - ${d.estilo}`;
-      div.appendChild(img);
-      div.appendChild(label);
-      galeria.appendChild(div);
+    async function fetchDados(range) {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+      const r = await fetch(url);
+      const j = await r.json();
+      return j.values || [];
     }
-  });
-}
 
-function abrirFullscreen(src) {
-  const fs = document.getElementById("fullscreenImage");
-  fs.src = src;
-  fs.style.display = "block";
-}
+    async function carregarTudo() {
+      const dados = await fetchDados("Bonsai_Gallery!A2:E");
+      dadosOriginais = dados;
+      preencherDropdowns(dados);
+      mostrarGaleria(dados);
+      preencherFormulario(dados);
+      log("Dados carregados com sucesso.");
+    }
 
-document.getElementById("fullscreenImage").onclick = () => {
-  document.getElementById("fullscreenImage").style.display = "none";
-};
+    function preencherDropdowns(dados) {
+      const categorias = new Set();
+      const especies = new Set();
+      const estilos = new Set();
+      dados.forEach(([cat, esp, , est]) => {
+        if (cat) categorias.add(cat);
+        if (esp) especies.add(esp);
+        if (est) estilos.add(est);
+      });
+      preencherSelect("filtroCategoria", ["Todas", ...categorias]);
+      preencherSelect("filtroEspecie", ["Todas", ...especies]);
+      preencherSelect("filtroEstilo", ["Todos", ...estilos]);
+    }
 
-[categoriaSelect, especieSelect, subespecieSelect, estiloSelect].forEach(sel =>
-  sel.addEventListener("change", () => {
-    atualizarFiltros();
-    atualizarGaleria();
-  })
-);
+    function preencherFormulario(dados) {
+      const categorias = new Set();
+      const especies = new Set();
+      const subespecies = new Set();
+      const estilos = new Set();
+      dados.forEach(([cat, esp, sub, est]) => {
+        if (cat) categorias.add(cat);
+        if (esp) especies.add(esp);
+        if (sub) subespecies.add(sub);
+        if (est) estilos.add(est);
+      });
+      preencherSelect("addCategoria", [...categorias]);
+      preencherDatalist("listaEspecies", [...especies]);
+      preencherDatalist("listaSubEspecies", [...subespecies]);
+      preencherDatalist("listaEstilos", [...estilos]);
+    }
 
-document.getElementById("btnDarkMode").onclick = () =>
-  document.body.classList.toggle("dark");
+    function preencherSelect(id, valores) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = valores.map(v => `<option value="${v}">${v}</option>`).join("");
+    }
 
-fetchDados();
-</script>
+    function preencherDatalist(id, valores) {
+      const d = document.getElementById(id);
+      d.innerHTML = valores.map(v => `<option value="${v}"/>`).join("");
+    }
+
+    function atualizarFiltros() {
+      const cat = document.getElementById("filtroCategoria").value;
+      const especies = new Set();
+      dadosOriginais.forEach(([c, e]) => { if (c === cat || cat === "Todas") especies.add(e); });
+      preencherSelect("filtroEspecie", ["Todas", ...especies]);
+      filtrarGaleria();
+    }
+
+    function filtrarGaleria() {
+      const cat = document.getElementById("filtroCategoria").value;
+      const esp = document.getElementById("filtroEspecie").value;
+      const est = document.getElementById("filtroEstilo").value;
+      const filtrados = dadosOriginais.filter(([c, e, , s]) =>
+        (cat === "Todas" || c === cat) &&
+        (esp === "Todas" || e === esp) &&
+        (est === "Todos" || s === est)
+      );
+      mostrarGaleria(filtrados);
+    }
+
+    function mostrarGaleria(dados) {
+      const div = document.getElementById("galeria");
+      div.innerHTML = "";
+      dados.forEach(([cat, esp, sub, est, link], idx) => {
+        if (!link) return;
+        const img = document.createElement("img");
+        img.src = link;
+        img.alt = esp;
+        img.title = `${esp}${sub ? " - " + sub : ""} (${est})`;
+        img.onclick = () => window.open(link, "_blank");
+        const fig = document.createElement("div");
+        fig.appendChild(img);
+        const leg = document.createElement("div");
+        leg.className = "legenda";
+        leg.textContent = `${esp}${sub ? " - " + sub : ""}\n#${idx + 2}`;
+        fig.appendChild(leg);
+        div.appendChild(fig);
+      });
+    }
+
+    function log(t) {
+      document.getElementById("log").textContent += `\n${t}`;
+    }
+
+    async function submeterFormulario() {
+      const categoria = document.getElementById("addCategoria").value;
+      const especie = document.getElementById("addEspecie").value;
+      const subespecie = document.getElementById("addSubEspecie").value;
+      const estilo = document.getElementById("addEstilo").value;
+      const link = document.getElementById("addLink").value;
+
+      if (!categoria || !especie || !link) {
+        alert("Por favor preencha os campos obrigatórios: Categoria, Espécie e Link.");
+        return;
+      }
+
+      const dados = { categoria, especie, subespecie, estilo, link };
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(dados),
+        headers: { "Content-Type": "application/json" }
+      });
+      const texto = await res.text();
+      document.getElementById("respostaAPI").textContent = texto;
+      await carregarTudo();
+    }
+
+    document.addEventListener("DOMContentLoaded", carregarTudo);
+  </script>
 </body>
 </html>
