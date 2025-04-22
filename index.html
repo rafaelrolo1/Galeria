@@ -16,6 +16,11 @@
     .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
     .galeria img { max-width: 200px; border-radius: 8px; cursor: pointer; }
     .legenda { text-align: center; font-size: 12px; }
+    .fullscreen-img {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      object-fit: contain; background-color: rgba(0,0,0,0.95);
+      z-index: 1000; display: none; cursor: zoom-out;
+    }
   </style>
 </head>
 <body>
@@ -33,15 +38,16 @@
   </label>
 
   <div class="galeria" id="galeria"></div>
-  <div id="log">logs (v3.03):</div>
+  <div id="log">logs (v3.05):</div>
+  <img id="fullscreenImage" class="fullscreen-img" onclick="this.style.display='none'" />
 
   <div class="formulario">
     <h3>Adicionar novo bonsai</h3>
     <label>Categoria:
-      <select id="addCategoria"></select>
+      <select id="addCategoria" onchange="filtrarFormularioEspecies()"></select>
     </label>
     <label>Espécie:
-      <input id="addEspecie" list="listaEspecies" placeholder="Escolher ou escrever nova"/>
+      <input id="addEspecie" list="listaEspecies" oninput="filtrarFormularioSubespecies()" placeholder="Escolher ou escrever nova" />
       <datalist id="listaEspecies"></datalist>
     </label>
     <label>Sub-espécie:
@@ -84,30 +90,45 @@
       log("Dados carregados com sucesso.");
     }
 
-    function preencherDropdowns(dados) {
-      const categorias = new Set();
-      const especies = new Set();
-      const estilos = new Set();
-      dados.forEach(([cat, esp, , est]) => {
-        if (cat) categorias.add(cat);
-        if (esp) especies.add(esp);
-        if (est) estilos.add(est);
+    function mostrarGaleria(dados) {
+      const div = document.getElementById("galeria");
+      div.innerHTML = "";
+      dados.forEach(([cat, esp, sub, est, link], idx) => {
+        if (!link) return;
+        const img = document.createElement("img");
+        img.src = link;
+        img.alt = esp;
+        img.title = `${esp}${sub ? " - " + sub : ""} (${est})`;
+        img.onclick = () => {
+          const fs = document.getElementById("fullscreenImage");
+          fs.src = link;
+          fs.style.display = "block";
+        };
+        const fig = document.createElement("div");
+        fig.appendChild(img);
+        const leg = document.createElement("div");
+        leg.className = "legenda";
+        leg.textContent = `${esp}${sub ? " - " + sub : ""}\n#${idx + 2}`;
+        fig.appendChild(leg);
+        div.appendChild(fig);
       });
+    }
+
+    function preencherDropdowns(dados) {
+      const categorias = new Set(), especies = new Set(), estilos = new Set();
+      dados.forEach(([c, e, , s]) => { categorias.add(c); especies.add(e); estilos.add(s); });
       preencherSelect("filtroCategoria", ["Todas", ...categorias]);
       preencherSelect("filtroEspecie", ["Todas", ...especies]);
       preencherSelect("filtroEstilo", ["Todos", ...estilos]);
     }
 
     function preencherFormulario(dados) {
-      const categorias = new Set();
-      const especies = new Set();
-      const subespecies = new Set();
-      const estilos = new Set();
-      dados.forEach(([cat, esp, sub, est]) => {
-        if (cat) categorias.add(cat);
-        if (esp) especies.add(esp);
+      const categorias = new Set(), especies = new Set(), subespecies = new Set(), estilos = new Set();
+      dados.forEach(([c, e, sub, s]) => {
+        categorias.add(c);
+        especies.add(e);
         if (sub) subespecies.add(sub);
-        if (est) estilos.add(est);
+        if (s) estilos.add(s);
       });
       preencherSelect("addCategoria", [...categorias]);
       preencherDatalist("listaEspecies", [...especies]);
@@ -145,28 +166,18 @@
       mostrarGaleria(filtrados);
     }
 
-    function mostrarGaleria(dados) {
-      const div = document.getElementById("galeria");
-      div.innerHTML = "";
-      dados.forEach(([cat, esp, sub, est, link], idx) => {
-        if (!link) return;
-        const img = document.createElement("img");
-        img.src = link;
-        img.alt = esp;
-        img.title = `${esp}${sub ? " - " + sub : ""} (${est})`;
-        img.onclick = () => window.open(link, "_blank");
-        const fig = document.createElement("div");
-        fig.appendChild(img);
-        const leg = document.createElement("div");
-        leg.className = "legenda";
-        leg.textContent = `${esp}${sub ? " - " + sub : ""}\n#${idx + 2}`;
-        fig.appendChild(leg);
-        div.appendChild(fig);
-      });
+    function filtrarFormularioEspecies() {
+      const cat = document.getElementById("addCategoria").value;
+      const especies = new Set();
+      dadosOriginais.forEach(([c, e]) => { if (c === cat) especies.add(e); });
+      preencherDatalist("listaEspecies", [...especies]);
     }
 
-    function log(t) {
-      document.getElementById("log").textContent += `\n${t}`;
+    function filtrarFormularioSubespecies() {
+      const esp = document.getElementById("addEspecie").value;
+      const subespecies = new Set();
+      dadosOriginais.forEach(([ , e, sub]) => { if (e === esp && sub) subespecies.add(sub); });
+      preencherDatalist("listaSubEspecies", [...subespecies]);
     }
 
     async function submeterFormulario() {
@@ -181,6 +192,11 @@
         return;
       }
 
+      if (dadosOriginais.some(d => d[4] === link)) {
+        alert("Este link já existe na galeria.");
+        return;
+      }
+
       const dados = { categoria, especie, subespecie, estilo, link };
       const res = await fetch(API_URL, {
         method: "POST",
@@ -190,6 +206,10 @@
       const texto = await res.text();
       document.getElementById("respostaAPI").textContent = texto;
       await carregarTudo();
+    }
+
+    function log(t) {
+      document.getElementById("log").textContent += `\n${t}`;
     }
 
     document.addEventListener("DOMContentLoaded", carregarTudo);
