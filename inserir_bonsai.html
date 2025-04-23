@@ -39,7 +39,7 @@
   <div id="mensagem" class="mensagem"></div>
 
   <script>
-    const versao = "v1.02";
+    const versao = "v1.025";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const apiUrl = "https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec";
@@ -92,18 +92,19 @@
         return;
       }
 
-      const form = new URLSearchParams();
-      form.append("categoria", categoria);
-      form.append("especie", especie);
-      form.append("subespecie", subespecie);
-      form.append("estilo", estilo);
-      form.append("link", link);
+      const dadosEnvio = {
+        categoria,
+        especie,
+        subespecie,
+        estilo,
+        link
+      };
 
       try {
         const res = await fetch(apiUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: form.toString()
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dadosEnvio)
         });
 
         const text = await res.text();
