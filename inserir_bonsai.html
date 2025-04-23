@@ -4,75 +4,91 @@
   <meta charset="UTF-8">
   <title>Adicionar Bonsai</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
     h1 { color: darkgreen; }
-    label { display: block; margin-top: 10px; }
-    input, select { width: 100%; padding: 8px; margin-top: 5px; }
-    button { margin-top: 15px; padding: 10px 20px; background: dodgerblue; color: white; border: none; cursor: pointer; }
-    #log { margin-top: 20px; white-space: pre-wrap; font-family: monospace; }
+    label, select, input, button {
+      display: block;
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+    }
+    #log {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
   <h1>Adicionar Novo Bonsai</h1>
-  <label>Categoria:</label>
-  <select id="categoria">
-    <option>Coníferas</option>
-    <option>Caducifólias</option>
-    <option>Perenifólias</option>
-    <option>Frutíferas</option>
-    <option>Floríferas</option>
-  </select>
-
-  <label>Espécie:</label>
-  <input type="text" id="especie" placeholder="Ex: Crataegus" />
-
-  <label>Subespécie:</label>
-  <input type="text" id="subespecie" placeholder="Ex: Monogyna" />
-
-  <label>Estilo:</label>
-  <input type="text" id="estilo" placeholder="Ex: Ereto Informal - Moyogi" />
-
-  <label>Link da Imagem:</label>
-  <input type="text" id="link" placeholder="URL da imagem do bonsai" />
-
+  <label>Categoria:
+    <select id="categoria"></select>
+  </label>
+  <label>Espécie:
+    <input id="especie" list="listaEspecies">
+    <datalist id="listaEspecies"></datalist>
+  </label>
+  <label>Subespécie:
+    <input id="subespecie" list="listaSubespecies">
+    <datalist id="listaSubespecies"></datalist>
+  </label>
+  <label>Estilo:
+    <input id="estilo" list="listaEstilos">
+    <datalist id="listaEstilos"></datalist>
+  </label>
+  <label>Link da Imagem:
+    <input type="url" id="link">
+  </label>
   <button onclick="adicionarBonsai()">Adicionar à Galeria</button>
-
-  <div id="log" style="color: green;">logs (v1.03):</div>
+  <div id="log">logs (v1.0):</div>
 
   <script>
-    async function adicionarBonsai() {
-      const categoria = document.getElementById('categoria').value;
-      const especie = document.getElementById('especie').value.trim();
-      const subespecie = document.getElementById('subespecie').value.trim();
-      const estilo = document.getElementById('estilo').value.trim();
-      const link = document.getElementById('link').value.trim();
-      const log = document.getElementById('log');
+    const API_URL = "https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec";
 
-      if (!categoria || !especie || !link) {
-        log.style.color = 'red';
-        log.innerText = 'logs (v1.03): Todos os campos obrigatórios devem ser preenchidos!';
-        return;
-      }
+    async function adicionarBonsai() {
+      const categoria = document.getElementById("categoria").value;
+      const especie = document.getElementById("especie").value;
+      const subespecie = document.getElementById("subespecie").value;
+      const estilo = document.getElementById("estilo").value;
+      const link = document.getElementById("link").value;
+
+      const log = document.getElementById("log");
+      log.innerText = "logs (v1.0):\nA enviar...";
 
       const data = { categoria, especie, subespecie, estilo, link };
-      log.style.color = 'green';
-      log.innerText = 'logs (v1.03): Enviando...';
 
       try {
-        const resposta = await fetch('https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
         });
 
-        const texto = await resposta.text();
-        log.style.color = 'green';
-        log.innerText = 'logs (v1.03): ' + texto;
+        const text = await response.text();
+        log.innerText += `\nSucesso: ${text}`;
       } catch (err) {
-        log.style.color = 'red';
-        log.innerText = 'logs (v1.03): [Erro] ' + err;
+        log.innerText += `\nErro: ${err.message}`;
       }
     }
+
+    // Opcional: preencher dropdowns com valores conhecidos (hardcoded por enquanto)
+    document.getElementById("categoria").innerHTML =
+      `<option>Coniferas</option><option>Caducifólias</option><option>Perenifólias</option>`;
+    document.getElementById("listaEstilos").innerHTML =
+      `<option>Chokkan</option><option>Moyogi</option><option>Shakan</option><option>Literati</option>`;
   </script>
 </body>
 </html>
