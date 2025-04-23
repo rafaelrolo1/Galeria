@@ -11,7 +11,6 @@
     button { background-color: #007BFF; color: white; border: none; cursor: pointer; margin-top: 20px; }
     button:hover { background-color: #0056b3; }
     .mensagem { margin-top: 20px; font-weight: bold; }
-    #log { margin-top: 30px; font-size: 0.9em; color: #555; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -38,9 +37,9 @@
   <button onclick="submeter()">Adicionar à Galeria</button>
 
   <div id="mensagem" class="mensagem"></div>
-  <div id="log">logs (v1.01):</div>
 
   <script>
+    const versao = "v1.02";
     const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
     const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
     const apiUrl = "https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec";
@@ -81,39 +80,38 @@
       const link = document.getElementById("link").value;
 
       const msg = document.getElementById("mensagem");
-      const log = document.getElementById("log");
+      msg.style.color = "red";
 
       if (!categoria || !especie || !link) {
-        msg.textContent = "Por favor preencha os campos obrigatórios.";
-        msg.style.color = "red";
-        log.textContent += "\n[Erro] Campos obrigatórios em falta.";
+        msg.textContent = `logs (${versao}):\nPreencha os campos obrigatórios.`;
         return;
       }
 
       if (dados.some(d => d[4] === link)) {
-        msg.textContent = "Este link já existe na galeria.";
-        msg.style.color = "orange";
-        log.textContent += `\n[Erro] Link duplicado: ${link}`;
+        msg.textContent = `logs (${versao}):\nEste link já existe na galeria.`;
         return;
       }
 
-      const payload = { categoria, especie, subespecie, estilo, link };
+      const form = new URLSearchParams();
+      form.append("categoria", categoria);
+      form.append("especie", especie);
+      form.append("subespecie", subespecie);
+      form.append("estilo", estilo);
+      form.append("link", link);
 
       try {
         const res = await fetch(apiUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: form.toString()
         });
 
-        const texto = await res.text();
-        msg.textContent = "Adicionado com sucesso!";
+        const text = await res.text();
+        msg.textContent = `logs (${versao}):\n${text}`;
         msg.style.color = "green";
-        log.textContent += `\n[Sucesso] ${texto}`;
+        document.querySelector("form")?.reset();
       } catch (err) {
-        msg.textContent = "Erro ao enviar os dados.";
-        msg.style.color = "red";
-        log.textContent += `\n[Erro] ${err}`;
+        msg.textContent = `logs (${versao}):\n[Erro] ${err}`;
       }
     }
 
