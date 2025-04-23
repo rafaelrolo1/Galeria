@@ -1,122 +1,79 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Inserir Novo Bonsai</title>
+  <title>Adicionar Novo Bonsai</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
-    label { display: block; margin-top: 10px; }
-    input, select, button { width: 100%; padding: 8px; margin-top: 5px; }
-    button { background-color: #007BFF; color: white; border: none; cursor: pointer; margin-top: 20px; }
-    button:hover { background-color: #0056b3; }
-    .mensagem { margin-top: 20px; font-weight: bold; }
+    label, select, input, button { display: block; margin-top: 10px; width: 100%; max-width: 600px; }
+    input, select { padding: 8px; }
+    button { background: #007BFF; color: white; border: none; padding: 10px; cursor: pointer; margin-top: 20px; }
+    button:hover { background: #0056b3; }
+    #log { margin-top: 20px; color: green; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>Adicionar Novo Bonsai</h1>
-
   <label for="categoria">Categoria:</label>
-  <select id="categoria"></select>
+  <select id="categoria">
+    <option>Coniferas</option>
+    <option>Caducífolias</option>
+    <option>Perenifólias</option>
+    <option>Frutíferas</option>
+    <option>Floríferas</option>
+  </select>
 
   <label for="especie">Espécie:</label>
-  <input id="especie" list="listaEspecies" placeholder="Escolha ou escreva uma nova" />
-  <datalist id="listaEspecies"></datalist>
+  <input id="especie" type="text">
 
   <label for="subespecie">Subespécie:</label>
-  <input id="subespecie" list="listaSubespecies" placeholder="Opcional" />
-  <datalist id="listaSubespecies"></datalist>
+  <input id="subespecie" type="text">
 
   <label for="estilo">Estilo:</label>
-  <input id="estilo" list="listaEstilos" placeholder="Escolha ou escreva novo" />
-  <datalist id="listaEstilos"></datalist>
+  <input id="estilo" type="text">
 
   <label for="link">Link da Imagem:</label>
-  <input id="link" type="url" placeholder="https://..." />
+  <input id="link" type="url">
 
-  <button onclick="submeter()">Adicionar à Galeria</button>
+  <button onclick="adicionarBonsai()">Adicionar à Galeria</button>
 
-  <div id="mensagem" class="mensagem"></div>
+  <div id="log">logs (v1.026):</div>
 
   <script>
-    const versao = "v1.025";
-    const sheetId = "1VszHZn6YCPHGMhNzetQMpozbxxqK6KC1U9SNb_BzK7I";
-    const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
-    const apiUrl = "https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec";
-
-    let dados = [];
-
-    async function fetchDados(range) {
-      const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`);
-      const j = await r.json();
-      return j.values || [];
-    }
-
-    async function carregarDropdowns() {
-      dados = await fetchDados("Bonsai_Gallery!A2:E");
-      const categorias = new Set();
-      const especies = new Set();
-      const subespecies = new Set();
-      const estilos = new Set();
-
-      dados.forEach(([cat, esp, sub, est]) => {
-        if (cat) categorias.add(cat);
-        if (esp) especies.add(esp);
-        if (sub) subespecies.add(sub);
-        if (est) estilos.add(est);
-      });
-
-      document.getElementById("categoria").innerHTML = [...categorias].map(c => `<option value="${c}">${c}</option>`).join("");
-      document.getElementById("listaEspecies").innerHTML = [...especies].map(e => `<option value="${e}"/>`).join("");
-      document.getElementById("listaSubespecies").innerHTML = [...subespecies].map(s => `<option value="${s}"/>`).join("");
-      document.getElementById("listaEstilos").innerHTML = [...estilos].map(e => `<option value="${e}"/>`).join("");
-    }
-
-    async function submeter() {
+    async function adicionarBonsai() {
       const categoria = document.getElementById("categoria").value;
       const especie = document.getElementById("especie").value;
       const subespecie = document.getElementById("subespecie").value;
       const estilo = document.getElementById("estilo").value;
       const link = document.getElementById("link").value;
 
-      const msg = document.getElementById("mensagem");
-      msg.style.color = "red";
+      const log = document.getElementById("log");
+      log.style.color = "green";
+      log.innerText = "logs (v1.025): Enviando...";
 
-      if (!categoria || !especie || !link) {
-        msg.textContent = `logs (${versao}):\nPreencha os campos obrigatórios.`;
-        return;
-      }
-
-      if (dados.some(d => d[4] === link)) {
-        msg.textContent = `logs (${versao}):\nEste link já existe na galeria.`;
-        return;
-      }
-
-      const dadosEnvio = {
-        categoria,
-        especie,
-        subespecie,
-        estilo,
-        link
-      };
-
+      const dados = { categoria, especie, subespecie, estilo, link };
       try {
-        const res = await fetch(apiUrl, {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dadosEnvio)
+          body: JSON.stringify(dados)
         });
 
-        const text = await res.text();
-        msg.textContent = `logs (${versao}):\n${text}`;
-        msg.style.color = "green";
-        document.querySelector("form")?.reset();
-      } catch (err) {
-        msg.textContent = `logs (${versao}):\n[Erro] ${err}`;
+        const texto = await response.text();
+        if (texto.includes("sucesso")) {
+          log.style.color = "green";
+          log.innerText = "logs (v1.025): Dados adicionados com sucesso.";
+        } else {
+          log.style.color = "red";
+          log.innerText = "logs (v1.025): Erro: " + texto;
+        }
+      } catch (erro) {
+        log.style.color = "red";
+        log.innerText = "logs (v1.025): [Erro] " + erro;
       }
     }
-
-    document.addEventListener("DOMContentLoaded", carregarDropdowns);
   </script>
 </body>
 </html>
