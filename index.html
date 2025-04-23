@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Galeria de Bonsais</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body { font-family: sans-serif; padding: 20px; transition: background 0.3s, color 0.3s; }
     h1 { color: darkgreen; }
-    select { margin: 5px; padding: 5px; }
+    label, select, input, button { margin: 5px; padding: 5px; }
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
+    .formulario { margin-top: 40px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background: #f8f8f8; }
+    .dark .formulario { background: #222; border-color: #444; }
+    .dark input, .dark select, .dark button { background: #333; color: #eee; border: 1px solid #666; }
+    .dark { background: #111; color: #eee; }
+    .topo { position: fixed; bottom: 20px; right: 20px; }
     .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    .galeria div { text-align: center; }
-    .galeria img { width: 200px; height: auto; border-radius: 8px; cursor: pointer; }
+    .galeria img { max-width: 200px; border-radius: 8px; cursor: pointer; }
+    .legenda { text-align: center; font-size: 12px; }
     .fullscreen-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: contain; background-color: rgba(0,0,0,0.95);
       z-index: 1000; display: none; cursor: zoom-out;
     }
-    .dark { background-color: #111; color: #eee; }
-    .dark select, .dark input { background-color: #333; color: #eee; }
-    .dark .galeria div { background-color: #222; }
   </style>
 </head>
 <body>
-<h1>Galeria de Bonsais</h1>
-<label>Categoria:
-  <select id="categoriaSelect"><option value="">Todas</option></select>
-</label>
-<label>Espécie:
-  <select id="especieSelect"><option value="">Todas</option></select>
-</label>
-<label>Sub-espécie:
-  <select id="subespecieSelect"><option value="">Todas</option></select>
-</label>
-<label>Estilo:
-  <select id="estiloSelect"><option value="">Todos</option></select>
-</label>
-<div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.03):</div>
-<img id="fullscreenImage" class="fullscreen-img" />
-<button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
+  <h1>Galeria de Bonsais</h1>
+  <label for="categoria">Categoria:</label>
+  <select id="categoria"><option value="">Selecionar categoria</option></select>
+  <label for="especie">Espécie:</label>
+  <input type="text" id="especie" list="listaEspecies">
+  <datalist id="listaEspecies"></datalist>
+  <label for="subespecie">Subespécie:</label>
+  <input type="text" id="subespecie" list="listaSubespecies">
+  <datalist id="listaSubespecies"></datalist>
+  <label for="estilo">Estilo:</label>
+  <select id="estilo"><option value="Todos">Todos</option></select>
+  <div id="galeria" class="galeria"></div>
+  <div id="log">logs (v3.06):</div>
+
+  <div class="topo">
+    <a href="https://script.google.com/macros/s/AKfycbxA-iKERFmUDlsgpZfGN2mPiQN_254UyPaF7pV62uFkTCfYfI5sCeNjK811wEvGmtBU/exec" target="_blank">
+      <button>Adicionar Novo Bonsai</button>
+    </a>
+  </div>
 
 <script>
 const apiKey = "AIzaSyAwYMSAn6yrut3thb5c0hrHONWnLTI1OWM";
