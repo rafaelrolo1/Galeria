@@ -1,77 +1,76 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Adicionar Novo Bonsai</title>
+  <title>Adicionar Bonsai</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: darkgreen; }
-    label, select, input, button { display: block; margin-top: 10px; width: 100%; max-width: 600px; }
-    input, select { padding: 8px; }
-    button { background: #007BFF; color: white; border: none; padding: 10px; cursor: pointer; margin-top: 20px; }
-    button:hover { background: #0056b3; }
-    #log { margin-top: 20px; color: green; font-weight: bold; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px 20px; background: dodgerblue; color: white; border: none; cursor: pointer; }
+    #log { margin-top: 20px; white-space: pre-wrap; font-family: monospace; }
   </style>
 </head>
 <body>
   <h1>Adicionar Novo Bonsai</h1>
-  <label for="categoria">Categoria:</label>
+  <label>Categoria:</label>
   <select id="categoria">
-    <option>Coniferas</option>
-    <option>Caducífolias</option>
+    <option>Coníferas</option>
+    <option>Caducifólias</option>
     <option>Perenifólias</option>
     <option>Frutíferas</option>
     <option>Floríferas</option>
   </select>
 
-  <label for="especie">Espécie:</label>
-  <input id="especie" type="text">
+  <label>Espécie:</label>
+  <input type="text" id="especie" placeholder="Ex: Crataegus" />
 
-  <label for="subespecie">Subespécie:</label>
-  <input id="subespecie" type="text">
+  <label>Subespécie:</label>
+  <input type="text" id="subespecie" placeholder="Ex: Monogyna" />
 
-  <label for="estilo">Estilo:</label>
-  <input id="estilo" type="text">
+  <label>Estilo:</label>
+  <input type="text" id="estilo" placeholder="Ex: Ereto Informal - Moyogi" />
 
-  <label for="link">Link da Imagem:</label>
-  <input id="link" type="url">
+  <label>Link da Imagem:</label>
+  <input type="text" id="link" placeholder="URL da imagem do bonsai" />
 
   <button onclick="adicionarBonsai()">Adicionar à Galeria</button>
 
-  <div id="log">logs (v1.027):</div>
+  <div id="log" style="color: green;">logs (v1.03):</div>
 
   <script>
     async function adicionarBonsai() {
-      const categoria = document.getElementById("categoria").value;
-      const especie = document.getElementById("especie").value;
-      const subespecie = document.getElementById("subespecie").value;
-      const estilo = document.getElementById("estilo").value;
-      const link = document.getElementById("link").value;
+      const categoria = document.getElementById('categoria').value;
+      const especie = document.getElementById('especie').value.trim();
+      const subespecie = document.getElementById('subespecie').value.trim();
+      const estilo = document.getElementById('estilo').value.trim();
+      const link = document.getElementById('link').value.trim();
+      const log = document.getElementById('log');
 
-      const log = document.getElementById("log");
-      log.style.color = "green";
-      log.innerText = "logs (v1.025): Enviando...";
+      if (!categoria || !especie || !link) {
+        log.style.color = 'red';
+        log.innerText = 'logs (v1.03): Todos os campos obrigatórios devem ser preenchidos!';
+        return;
+      }
 
-      const dados = { categoria, especie, subespecie, estilo, link };
+      const data = { categoria, especie, subespecie, estilo, link };
+      log.style.color = 'green';
+      log.innerText = 'logs (v1.03): Enviando...';
+
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dados)
+        const resposta = await fetch('https://script.google.com/macros/s/AKfycbyS-UyNTCMGpCJ08-GuhAsDvCoY8dSQqK5oyiOY8sMITv5We9l8yTEj6F3z16_1VYw1/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
         });
 
-        const texto = await response.text();
-        if (texto.includes("sucesso")) {
-          log.style.color = "green";
-          log.innerText = "logs (v1.025): Dados adicionados com sucesso.";
-        } else {
-          log.style.color = "red";
-          log.innerText = "logs (v1.025): Erro: " + texto;
-        }
-      } catch (erro) {
-        log.style.color = "red";
-        log.innerText = "logs (v1.025): [Erro] " + erro;
+        const texto = await resposta.text();
+        log.style.color = 'green';
+        log.innerText = 'logs (v1.03): ' + texto;
+      } catch (err) {
+        log.style.color = 'red';
+        log.innerText = 'logs (v1.03): [Erro] ' + err;
       }
     }
   </script>
