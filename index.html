@@ -45,7 +45,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.05):</div>
+<div id="log">logs (v3.03):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -70,13 +70,12 @@ async function fetchDados() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
   const res = await fetch(url);
   const json = await res.json();
-  dados = json.values.map((r, i) => ({
+  dados = json.values.map(r => ({
     categoria: r[0] || "",
     especie: r[1] || "",
     subespecie: r[2] || "",
     estilo: r[3] || "",
-    link: r[4] || "",
-    numero: i + 2
+    link: r[4] || ""
   }));
   atualizarFiltros();
   atualizarGaleria();
@@ -121,7 +120,7 @@ function atualizarGaleria() {
       const label = document.createElement("div");
       img.src = d.link;
       img.onclick = () => abrirFullscreen(d.link);
-      label.innerHTML = `#${d.numero} - ${d.especie}${d.subespecie ? " " + d.subespecie : ""}<br>${d.estilo ? d.estilo : ""}`;
+      label.textContent = `${d.especie} ${d.subespecie} - ${d.estilo}`;
       div.appendChild(img);
       div.appendChild(label);
       galeria.appendChild(div);
