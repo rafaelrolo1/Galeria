@@ -50,7 +50,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.09):</div>
+<div id="log">logs (v3.10):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -161,18 +161,6 @@ function atualizarGaleria() {
   `;
 }
 
-
-
-  // Navegação
-  const totalPaginas = Math.ceil(total / imagensPorPagina);
-  galeria.innerHTML += `
-    <div style="margin-top:20px; text-align:center;">
-      <button onclick="paginaAnterior()" ${paginaAtual === 1 ? "disabled" : ""}>« Anterior</button>
-      <span style="margin: 0 10px;">Página ${paginaAtual} de ${totalPaginas}</span>
-      <button onclick="proximaPagina()" ${paginaAtual === totalPaginas ? "disabled" : ""}>Próxima »</button>
-    </div>
-  `;
-}
 
 function paginaAnterior() {
   if (paginaAtual > 1) {
