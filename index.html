@@ -10,7 +10,7 @@
     #log { margin-top: 20px; color: red; white-space: pre-wrap; }
     .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
     .galeria div { text-align: center; }
-    .galeria img { width: 400px; height: auto; border-radius: 8px; cursor: pointer; }
+    .galeria img { width: 410px; height: auto; border-radius: 8px; cursor: pointer; }
     .fullscreen-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: contain; background-color: rgba(0,0,0,0.95);
@@ -50,7 +50,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.09):</div>
+<div id="log">logs (v3.10):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -66,7 +66,7 @@ const estiloSelect = document.getElementById("estiloSelect");
 const galeria = document.getElementById("galeria");
 
 let paginaAtual = 1;
-const imagensPorPagina = 50;
+const imagensPorPagina = 40;
 
 function log(msg) {
   document.getElementById("log").textContent += "\n" + msg;
