@@ -104,6 +104,42 @@
     padding: 6px 10px;
   }
 }
+    .botoes-filtros {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.botoes-filtros button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.botoes-filtros button:first-child {
+  background: #eee;
+}
+
+.botoes-filtros button:last-child {
+  background: #007BFF;
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .botoes-filtros {
+    flex-direction: row;
+  }
+
+  .botoes-filtros button {
+    font-size: 0.85rem;
+    padding: 8px 6px;
+  }
+}
 
 </style>
 
@@ -128,10 +164,10 @@
     🔄 Repor Filtros
   </button>
 
-  <a href="https://script.google.com/macros/s/AKfycbyK7iS0giL5u-8dqY8XV8Q36ZSazuyWKBuxZ8hXSvKd7daCiucxbXFtu8GVYhgT_nMP/exec" target="_blank" style="text-decoration: none;">
-    <button style="padding:10px 20px; background:#007BFF; color:white; border:none; border-radius:5px; cursor:pointer;">
-      ➕ Adicionar Novo Bonsai
-    </button>
+<div class="botoes-filtros">
+  <button id="btnRepor">🔄 Repor Filtros</button>
+  <a href="https://script.google.com/macros/s/AKfycbyK7iS0giL5u-8dqY8XV8Q36ZSazuyWKBuxZ8hXSvKd7daCiucxbXFtu8GVYhgT_nMP/exec" target="_blank">
+    <button>➕ Adicionar Novo Bonsai</button>
   </a>
 </div>
 
