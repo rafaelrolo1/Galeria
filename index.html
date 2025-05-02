@@ -75,15 +75,16 @@ async function fetchDados() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
   const res = await fetch(url);
   const json = await res.json();
-  dados = json.values.map((r, i) => ({
+dados = json.values
+  .map((r, i) => ({
     categoria: r[0] || "",
     especie: r[1] || "",
     subespecie: r[2] || "",
     estilo: r[3] || "",
     link: r[4] || "",
     numero: i + 2
-  }));
-  .sort(() => Math.random() - 0.5); //
+  }))
+  .sort(() => Math.random() - 0.5);
   atualizarFiltros();
   atualizarGaleria();
 }
