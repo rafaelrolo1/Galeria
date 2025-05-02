@@ -50,7 +50,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.06):</div>
+<div id="log">logs (v3.07):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -83,6 +83,7 @@ async function fetchDados() {
     link: r[4] || "",
     numero: i + 2
   }));
+  .sort(() => Math.random() - 0.5); // ← embaralha
   atualizarFiltros();
   atualizarGaleria();
 }
