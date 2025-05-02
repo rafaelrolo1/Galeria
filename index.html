@@ -4,22 +4,84 @@
   <meta charset="UTF-8" />
   <title>Galeria de Bonsais</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    h1 { color: darkgreen; }
-    select { margin: 5px; padding: 5px; }
-    #log { margin-top: 20px; color: red; white-space: pre-wrap; }
-    .galeria { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    .galeria div { text-align: center; }
-    .galeria img { width: 380px; height: auto; border-radius: 8px; cursor: pointer; }
-    .fullscreen-img {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      object-fit: contain; background-color: rgba(0,0,0,0.95);
-      z-index: 1000; display: none; cursor: zoom-out;
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+  }
+
+  h1 {
+    color: darkgreen;
+  }
+
+  select {
+    margin: 5px;
+    padding: 5px;
+  }
+
+  #log {
+    margin-top: 20px;
+    color: red;
+    white-space: pre-wrap;
+  }
+
+  .galeria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .galeria .item {
+    flex: 0 0 23%;        /* 4 por linha em ecrãs grandes */
+    max-width: 410px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .galeria img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .fullscreen-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    display: none;
+    cursor: zoom-out;
+  }
+
+  .dark {
+    background-color: #111;
+    color: #eee;
+  }
+
+  .dark select,
+  .dark input {
+    background-color: #333;
+    color: #eee;
+  }
+
+  .dark .galeria div {
+    background-color: #222;
+  }
+
+  /* Responsivo: 2 por linha em ecrãs pequenos */
+  @media (max-width: 768px) {
+    .galeria .item {
+      flex: 0 0 48%;
     }
-    .dark { background-color: #111; color: #eee; }
-    .dark select, .dark input { background-color: #333; color: #eee; }
-    .dark .galeria div { background-color: #222; }
-  </style>
+  }
+</style>
+
 </head>
 <body>
 <h1>Galeria de Bonsais</h1>
