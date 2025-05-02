@@ -45,7 +45,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.05):</div>
+<div id="log">logs (v3.06):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -145,6 +145,15 @@ document.getElementById("fullscreenImage").onclick = () => {
     atualizarGaleria();
   })
 );
+  
+document.getElementById("btnRepor").onclick = () => {
+  categoriaSelect.value = "";
+  especieSelect.value = "";
+  subespecieSelect.value = "";
+  estiloSelect.value = "";
+  atualizarFiltros();
+  atualizarGaleria();
+};
 
 document.getElementById("btnDarkMode").onclick = () =>
   document.body.classList.toggle("dark");
