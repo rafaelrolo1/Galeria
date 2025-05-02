@@ -50,7 +50,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.06):</div>
+<div id="log">logs (v3.07):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -65,7 +65,8 @@ const subespecieSelect = document.getElementById("subespecieSelect");
 const estiloSelect = document.getElementById("estiloSelect");
 const galeria = document.getElementById("galeria");
 
-let dados = [];
+let paginaAtual = 1;
+const imagensPorPagina = 50;
 
 function log(msg) {
   document.getElementById("log").textContent += "\n" + msg;
@@ -114,27 +115,42 @@ function atualizarSelect(select, valores, label) {
 }
 
 function atualizarGaleria() {
-  const cat = categoriaSelect.value, esp = especieSelect.value;
-  const sub = subespecieSelect.value, est = estiloSelect.value;
-  galeria.innerHTML = "";
+  const cat = categoriaSelect.value,
+        esp = especieSelect.value,
+        sub = subespecieSelect.value,
+        est = estiloSelect.value;
 
-  dados.forEach((d, i) => {
-    if ((cat && d.categoria !== cat) || (esp && d.especie !== esp) ||
-        (sub && d.subespecie !== sub) || (est && d.estilo !== est)) return;
+  const filtrados = dados.filter(d =>
+    (!cat || d.categoria === cat) &&
+    (!esp || d.especie === esp) &&
+    (!sub || d.subespecie === sub) &&
+    (!est || d.estilo === est)
+  );
 
-    if (d.link) {
-      const div = document.createElement("div");
-      const img = document.createElement("img");
-      const label = document.createElement("div");
-      img.src = d.link;
-      img.onclick = () => abrirFullscreen(d.link);
-      label.innerHTML = `#${d.numero} - ${d.especie}${d.subespecie ? " " + d.subespecie : ""}<br>${d.estilo ? d.estilo : ""}`;
-      div.appendChild(img);
-      div.appendChild(label);
-      galeria.appendChild(div);
-    }
-  });
+  // Paginação
+  const total = filtrados.length;
+  const inicio = (paginaAtual - 1) * imagensPorPagina;
+  const fim = inicio + imagensPorPagina;
+  const pagina = filtrados.slice(inicio, fim);
+
+  galeria.innerHTML = pagina.map(d => `
+    <div class="item" onclick="abrirFullscreen('${d.link}')">
+      <img src="${d.link}" alt="Imagem Bonsai" />
+      <div>#${d.numero} - ${d.especie} ${d.subespecie}<br>${d.estilo}</div>
+    </div>
+  `).join("");
+
+  // Navegação
+  const totalPaginas = Math.ceil(total / imagensPorPagina);
+  galeria.innerHTML += `
+    <div style="margin-top:20px; text-align:center;">
+      <button onclick="paginaAnterior()" ${paginaAtual === 1 ? "disabled" : ""}>« Anterior</button>
+      <span style="margin: 0 10px;">Página ${paginaAtual} de ${totalPaginas}</span>
+      <button onclick="proximaPagina()" ${paginaAtual === totalPaginas ? "disabled" : ""}>Próxima »</button>
+    </div>
+  `;
 }
+
 
 function abrirFullscreen(src) {
   const fs = document.getElementById("fullscreenImage");
