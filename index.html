@@ -50,7 +50,7 @@
 </div>
 
 <div class="galeria" id="galeria"></div>
-<div id="log">logs (v3.07):</div>
+<div id="log">logs (v3.08):</div>
 <img id="fullscreenImage" class="fullscreen-img" />
 <button id="btnDarkMode" style="position:fixed;top:20px;right:20px;z-index:1001;padding:8px;border:none;border-radius:6px;cursor:pointer;background:#333;color:#fff;">🌙</button>
 
@@ -151,6 +151,17 @@ function atualizarGaleria() {
   `;
 }
 
+function paginaAnterior() {
+  if (paginaAtual > 1) {
+    paginaAtual--;
+    atualizarGaleria();
+  }
+}
+
+function proximaPagina() {
+  paginaAtual++;
+  atualizarGaleria();
+}
 
 function abrirFullscreen(src) {
   const fs = document.getElementById("fullscreenImage");
