@@ -283,12 +283,14 @@ function paginaAnterior() {
   if (paginaAtual > 1) {
     paginaAtual--;
     atualizarGaleria();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
 function proximaPagina() {
   paginaAtual++;
   atualizarGaleria();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function abrirFullscreen(src) {
